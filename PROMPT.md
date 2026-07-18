@@ -270,6 +270,7 @@ tabelas (README e este resumo) coerentes com o código real de
 14. Kiosk e Screen tornados públicos (sem login); auto-pareamento sala↔TV via `localStorage`
 15. Home pública (`/`) convidando ao login para quem não está logado; destino de chamada fixo e configurável ("Portaria de Saída")
 16. Botão de login sempre visível no Kiosk e no Screen; README completo reescrito
+17. Painel de Presença: card de aluno clicável abre modal para trocar foto (qualquer perfil logado, reaproveitando a rota `kiosk.gestao_aluno_foto`) e, para administrador/supervisor, atalho para o cadastro completo (`admin.alunos_editar`)
 
 **Correções relevantes já aplicadas** (ver detalhes no README, seção
 "Correções e ajustes recentes"): bug de sessão fantasma

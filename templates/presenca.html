@@ -42,8 +42,11 @@
 
         <div class="grade-presenca" id="grade-presenca">
             {% for aluno in alunos %}
-            <div class="cartao-presenca" data-aluno-id="{{ aluno.id }}" data-sala-id="{{ aluno.sala_id or '' }}"
-                 data-busca="{{ (aluno.nome ~ ' ' ~ (aluno.turma or '') ~ ' ' ~ (aluno.codigo or '')) | lower }}">
+            <div class="cartao-presenca cartao-presenca-clicavel" data-aluno-id="{{ aluno.id }}" data-sala-id="{{ aluno.sala_id or '' }}"
+                 data-busca="{{ (aluno.nome ~ ' ' ~ (aluno.turma or '') ~ ' ' ~ (aluno.codigo or '')) | lower }}"
+                 data-aluno-nome="{{ aluno.nome }}" data-foto-url="{{ foto_url(aluno.foto) }}"
+                 data-editar-url="{{ url_for('admin.alunos_editar', aluno_id=aluno.id) if perfil_logado in ('administrador', 'supervisor') else '' }}"
+                 title="Clique para gerenciar foto/cadastro deste aluno" role="button" tabindex="0">
                 {% if aluno.prioridade %}<span class="etiqueta-prioridade">Prioridade</span>{% endif %}
                 <img class="foto-aluno" src="{{ foto_url(aluno.foto) }}" alt="{{ aluno.nome }}">
                 <span class="nome-aluno">{{ aluno.nome }}</span>
@@ -59,6 +62,27 @@
             <p>Nenhum aluno aguardando no momento.</p>
         </div>
     </main>
+
+    <!-- Modal de ações do aluno (Módulo 17): abre ao clicar num card da
+         Presença. Qualquer usuário logado pode trocar a foto (mesma rota
+         de gestão usada no Kiosk); só administrador/supervisor também
+         veem o atalho para o cadastro completo. -->
+    <div class="qrcode-modal oculto" id="modal-acoes-aluno">
+        <div class="qrcode-modal-conteudo modal-acoes-aluno-conteudo">
+            <img id="acoes-aluno-foto" class="foto-preview-modal" src="" alt="">
+            <h3 id="acoes-aluno-titulo">Aluno</h3>
+
+            <form id="form-foto-acoes-aluno" method="POST" enctype="multipart/form-data" class="form-foto-acoes-aluno">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <label for="acoes-aluno-input-foto">Trocar foto</label>
+                <input type="file" id="acoes-aluno-input-foto" name="foto" accept=".png,.jpg,.jpeg,.webp" required>
+                <button type="submit" class="btn btn-primario">Enviar foto</button>
+            </form>
+
+            <a id="acoes-aluno-link-editar" href="#" class="btn btn-secundario oculto">✏ Editar cadastro completo</a>
+            <button type="button" class="btn btn-pequeno" id="btn-fechar-acoes-aluno">Fechar</button>
+        </div>
+    </div>
 </div>
 {% endblock %}
 

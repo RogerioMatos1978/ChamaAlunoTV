@@ -1311,6 +1311,20 @@ h1, h2, h3, h4 {
     color: #fff;
 }
 
+/* Card clicável (Módulo 17): abre o modal de ações (trocar foto /
+   editar cadastro) ao clicar em um aluno na tela de Presença. */
+.cartao-presenca-clicavel {
+    cursor: pointer;
+    transition: var(--transicao-padrao);
+}
+
+.cartao-presenca-clicavel:hover,
+.cartao-presenca-clicavel:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: var(--sombra-media);
+    outline: none;
+}
+
 @media (max-width: 600px) {
     .grade-presenca { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.85rem; }
 }
@@ -1412,6 +1426,42 @@ h1, h2, h3, h4 {
 .qrcode-modal-conteudo img {
     width: 100%;
     margin-bottom: 1rem;
+}
+
+/* Modal de ações do aluno (Módulo 17), aberto a partir de um card da
+   tela de Presença — reaproveita a base ".qrcode-modal", mas com uma
+   foto redonda (avatar) em vez do QR Code quadrado. */
+.modal-acoes-aluno-conteudo {
+    max-width: 340px;
+    width: 100%;
+}
+
+.modal-acoes-aluno-conteudo .foto-preview-modal {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 0.75rem;
+    border: 2px solid var(--cor-borda);
+}
+
+.form-foto-acoes-aluno {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 1rem 0;
+    text-align: left;
+}
+
+.form-foto-acoes-aluno label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+}
+
+#modal-acoes-aluno .btn {
+    width: 100%;
+    margin-top: 0.4rem;
 }
 
 /* ---------- 15. Últimos chamados e aviso de atualização (Módulo 11) ---------- */

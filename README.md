@@ -249,6 +249,10 @@ exemplo `http://192.168.0.10:5000`. Veja mais em
 - [x] **Módulo 16** — Botão de login sempre visível no Kiosk (mesmo no
       modo simplificado) e no painel de TV, para acessar o resto do
       sistema a partir de qualquer terminal público
+- [x] **Módulo 17** — Painel de Presença: clicar em um card de aluno
+      abre um modal para trocar a foto (qualquer perfil logado) e, para
+      administrador/supervisor, um atalho direto para o cadastro
+      completo do aluno
 
 ## Correções e ajustes recentes
 
@@ -325,7 +329,12 @@ narração e o texto exibido na TV sempre apontam para esse destino
 fixo, independente de qual sala/TV disparou a chamada · Botão "🔐
 Entrar" sempre visível no Kiosk (mesmo em modo simplificado) e no
 painel de TV, para qualquer pessoa autorizada acessar o resto do
-sistema a partir de um terminal público.
+sistema a partir de um terminal público · Painel de Presença: clicar em
+um card de aluno abre um modal para trocar a foto na hora (qualquer
+usuário logado, mesma permissão da gestão do Kiosk) e, se for
+administrador/supervisor, também mostra um atalho "✏ Editar cadastro
+completo" direto para a tela de edição do aluno no Painel
+administrativo.
 
 ## Acesso padrão (troque em produção)
 

@@ -43,6 +43,55 @@ document.addEventListener("DOMContentLoaded", function () {
         aplicarFiltros();
     });
 
+    // --- Modal de ações do aluno (Módulo 17): abre ao clicar num card ---
+    const modalAcoes = document.getElementById("modal-acoes-aluno");
+    const formFotoAcoes = document.getElementById("form-foto-acoes-aluno");
+    const tituloAcoes = document.getElementById("acoes-aluno-titulo");
+    const fotoAcoes = document.getElementById("acoes-aluno-foto");
+    const linkEditarAcoes = document.getElementById("acoes-aluno-link-editar");
+    const btnFecharAcoes = document.getElementById("btn-fechar-acoes-aluno");
+
+    function abrirModalAcoes(cartao) {
+        const alunoId = cartao.dataset.alunoId;
+        formFotoAcoes.action = "/kiosk/gestao/alunos/" + alunoId + "/foto";
+        tituloAcoes.textContent = cartao.dataset.alunoNome;
+        fotoAcoes.src = cartao.dataset.fotoUrl;
+        fotoAcoes.alt = cartao.dataset.alunoNome;
+
+        if (cartao.dataset.editarUrl) {
+            linkEditarAcoes.href = cartao.dataset.editarUrl;
+            linkEditarAcoes.classList.remove("oculto");
+        } else {
+            linkEditarAcoes.classList.add("oculto");
+        }
+
+        modalAcoes.classList.remove("oculto");
+    }
+
+    if (grade && modalAcoes) {
+        grade.addEventListener("click", function (evento) {
+            const cartao = evento.target.closest(".cartao-presenca-clicavel");
+            if (!cartao) return;
+            abrirModalAcoes(cartao);
+        });
+
+        grade.addEventListener("keydown", function (evento) {
+            if (evento.key !== "Enter" && evento.key !== " ") return;
+            const cartao = evento.target.closest(".cartao-presenca-clicavel");
+            if (!cartao) return;
+            evento.preventDefault();
+            abrirModalAcoes(cartao);
+        });
+
+        btnFecharAcoes.addEventListener("click", function () {
+            modalAcoes.classList.add("oculto");
+        });
+
+        modalAcoes.addEventListener("click", function (evento) {
+            if (evento.target === modalAcoes) modalAcoes.classList.add("oculto");
+        });
+    }
+
     // --- Sincronização em tempo real: remove o aluno assim que for chamado ---
     const socket = window.socketApp;
     socket.on("aluno_chamado", function (chamada) {
