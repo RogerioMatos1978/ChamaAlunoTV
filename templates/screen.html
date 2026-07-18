@@ -3,9 +3,37 @@
 {% block titulo %}Painel de Chamadas — {{ nome_instituicao }}{% endblock %}
 
 {% block conteudo %}
+
+{% if modo == 'selecionar' %}
+<!-- ---------- Seleção de sala desta TV (Módulo 14) ---------- -->
+<div class="tela-screen screen-selecionar" id="screen-selecionar">
+    <img src="{{ url_for('static', filename='img/logos/logo.png') }}"
+         alt="{{ nome_instituicao }}" class="screen-logo-selecionar" onerror="this.style.display='none'">
+    <h1>Qual é a sala desta TV?</h1>
+    <p class="texto-suave-tv">Toque na sala em que esta TV está instalada. Essa TV vai lembrar
+        a escolha e, a partir de agora, só vai exibir e narrar as chamadas dessa sala.</p>
+
+    {% if salas %}
+    <div class="grade-salas-tv" id="grade-salas-tv">
+        {% for sala in salas %}
+        <button type="button" class="cartao-sala-tv" style="border-top-color: {{ sala.cor }};"
+                data-sala-id="{{ sala.id }}" data-sala-nome="{{ sala.nome }}">
+            <span class="cartao-sala-tv-nome">{{ sala.nome }}</span>
+            {% if sala.descricao %}<span class="cartao-sala-tv-desc">{{ sala.descricao }}</span>{% endif %}
+        </button>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="texto-suave-tv">Nenhuma sala ativa cadastrada ainda.</p>
+    {% endif %}
+
+    <a href="{{ url_for('screen.tela_geral') }}" class="link-screen-geral">Ver chamadas de todas as salas nesta TV</a>
+</div>
+
+{% else %}
+<!-- ---------- Estado ocioso / chamada (modos "sala" e "geral") ---------- -->
 <div class="tela-screen" id="tela-screen">
 
-    <!-- ---------- Estado ocioso: nenhuma chamada em exibição ---------- -->
     <div class="screen-ocioso" id="screen-ocioso">
         <img src="{{ url_for('static', filename='img/logos/logo.png') }}"
              alt="{{ nome_instituicao }}" class="screen-logo-ocioso" onerror="this.style.display='none'">
@@ -46,8 +74,11 @@
         </p>
     </aside>
 
-    <!-- ---------- Botões flutuantes (tela cheia / configurações de voz) ---------- -->
+    <!-- ---------- Botões flutuantes (tela cheia / trocar sala / configurações de voz) ---------- -->
     <div class="screen-controles">
+        {% if sala %}
+        <button id="btn-trocar-sala-tv" class="botao-controle" title="Trocar a sala desta TV">🏫</button>
+        {% endif %}
         <button id="btn-config-voz" class="botao-controle" title="Configurar narração">⚙</button>
         <button id="btn-tela-cheia" class="botao-controle" title="Tela cheia">⛶</button>
     </div>
@@ -83,22 +114,31 @@
         </div>
     </div>
 </div>
+{% endif %}
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Caminhos usados pelo screen.js para montar a URL da foto do aluno
-    // (com fallback automático para a imagem padrão, via onerror da <img>).
+    // Caminhos e contexto usados pelo JS da TV (screen.js / screen_selecionar.js).
     window.CONFIG_SCREEN = {
+        modo: {{ modo | tojson }},
         fotosBase: "{{ url_for('static', filename='fotos/') }}",
         avatarPadrao: "{{ url_for('static', filename='img/icons/default_avatar.png') }}",
         nomeInstituicao: {{ nome_instituicao | tojson }},
         repeticoesNarracao: {{ config.NARRACAO_REPETICOES | default(2) }},
-        // Módulo 13: quando definido, esta TV é dedicada a UMA sala — o
+        // Módulo 13/14: quando definido, esta TV é dedicada a UMA sala — o
         // screen.js ignora qualquer chamada de outra sala (não exibe,
         // não narra, não entra na lista "Últimos chamados" desta TV).
-        salaNome: {{ sala.nome | tojson if sala else 'null' }}
+        salaId: {{ sala.id | tojson if sala else 'null' }},
+        salaNome: {{ sala.nome | tojson if sala else 'null' }},
+        // URL base para montar o link de uma sala escolhida (Módulo 14).
+        urlBaseSala: "{{ url_for('screen.tela') }}"
     };
 </script>
+{% if modo == 'selecionar' %}
+<script src="{{ url_for('static', filename='js/screen_selecionar.js') }}"></script>
+{% else %}
 <script src="{{ url_for('static', filename='js/screen.js') }}"></script>
+{% endif %}
 {% endblock %}

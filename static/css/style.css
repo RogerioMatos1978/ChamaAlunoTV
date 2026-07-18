@@ -890,6 +890,13 @@ h1, h2, h3, h4 {
     color: var(--cor-menu);
 }
 
+.cartao-sala-tv-id {
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+}
+
 /* --- Fila de alunos (cards grandes, pensados para toque) --- */
 .grade-alunos {
     display: grid;
@@ -1559,6 +1566,88 @@ h1, h2, h3, h4 {
 .btn-trocar-sala {
     font-size: 1.05rem;
     padding: 0.75rem 1.5rem;
+}
+
+/* ---------- 17. Seleção de sala no painel de TV (Módulo 14) ---------- */
+.screen-selecionar {
+    background: #000;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 2rem;
+    gap: 0.5rem;
+}
+
+.screen-logo-selecionar {
+    max-height: 80px;
+    margin-bottom: 1rem;
+}
+
+.screen-selecionar h1 {
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    font-weight: 800;
+}
+
+.texto-suave-tv {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 1.05rem;
+    max-width: 640px;
+    margin: 0 auto 1.5rem;
+}
+
+.grade-salas-tv {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 1400px;
+    margin-top: 1rem;
+}
+
+.cartao-sala-tv {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-top: 8px solid var(--cor-footer);
+    border-radius: var(--raio-borda);
+    padding: 2rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    color: #fff;
+    font-family: inherit;
+    transition: var(--transicao-padrao);
+}
+
+.cartao-sala-tv:hover, .cartao-sala-tv:focus-visible {
+    background: rgba(255, 255, 255, 0.16);
+    transform: translateY(-4px);
+}
+
+.cartao-sala-tv-nome {
+    font-size: 1.3rem;
+    font-weight: 700;
+}
+
+.cartao-sala-tv-desc {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.link-screen-geral {
+    margin-top: 2.5rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9rem;
+    text-decoration: underline;
+}
+
+.link-screen-geral:hover {
+    color: #fff;
 }
 
 /* --- Gestão de alunos/salas pelo usuário padrão (Kiosk) --- */

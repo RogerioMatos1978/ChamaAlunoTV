@@ -45,7 +45,7 @@
 
     {% block conteudo %}{% endblock %}
 
-    {% if request.endpoint != 'screen.tela' %}
+    {% if not (request.endpoint and request.endpoint.startswith('screen.')) %}
     <!-- Aviso de dados atualizados (Módulo 11): aparece quando outra tela
          altera salas/alunos, para o usuário decidir quando atualizar —
          sem recarregar a página sozinho e sem perder o que ele está

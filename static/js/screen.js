@@ -20,6 +20,15 @@
 (function () {
     const CONFIG = window.CONFIG_SCREEN || {};
     const CHAVE_CONFIG_VOZ = "chamada_alunos_config_voz";
+    const CHAVE_TV_SALA = "chamada_alunos_tv_sala_id";
+
+    // Módulo 14: se esta TV foi aberta diretamente em `/screen/<sala_id>`
+    // (link direto, QR Code), registra o pareamento no navegador da TV
+    // também aqui — assim, mesmo sem passar pela grade de seleção, a
+    // próxima vez que a página recarregar já pula direto para cá.
+    if (CONFIG.salaId) {
+        localStorage.setItem(CHAVE_TV_SALA, CONFIG.salaId);
+    }
 
     const elOcioso = document.getElementById("screen-ocioso");
     const elChamada = document.getElementById("screen-chamada");
@@ -297,6 +306,18 @@
             if (document.exitFullscreen) document.exitFullscreen();
         }
     });
+
+    // -------------------------------------------------------------------
+    // Trocar a sala pareada com esta TV (Módulo 14)
+    // -------------------------------------------------------------------
+    const btnTrocarSala = document.getElementById("btn-trocar-sala-tv");
+    if (btnTrocarSala) {
+        btnTrocarSala.addEventListener("click", function () {
+            if (!confirm("Trocar a sala desta TV? Você vai voltar para a tela de seleção de sala.")) return;
+            localStorage.removeItem(CHAVE_TV_SALA);
+            window.location.href = CONFIG.urlBaseSala || "/screen/";
+        });
+    }
 
     // Estado inicial: ocioso visível.
     elOcioso.classList.add("visivel");

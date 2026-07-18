@@ -22,7 +22,7 @@ from flask import (
 )
 
 from database.services import (
-    autenticar_usuario, atualizar_ultimo_login, registrar_log,
+    autenticar_usuario, atualizar_ultimo_login, registrar_log, obter_usuario_por_id,
 )
 
 auth_bp = Blueprint("auth", __name__)
@@ -32,12 +32,30 @@ auth_bp = Blueprint("auth", __name__)
 # Decorators de proteção de rota
 # ---------------------------------------------------------------------------
 def login_required(view_func):
-    """Bloqueia o acesso à rota se não houver usuário logado na sessão."""
+    """
+    Bloqueia o acesso à rota se não houver usuário logado na sessão.
+
+    Também detecta uma "sessão fantasma": quando a conta foi excluída ou
+    desativada (ex.: pelo admin) DEPOIS que o login já tinha sido feito
+    em outro dispositivo/aba — o cookie de sessão continua válido, mas o
+    usuário não existe mais no banco. Sem essa checagem, qualquer ação
+    dessa sessão que gravasse o `usuario_id` (log de auditoria, chamada,
+    presença) quebraria com `IntegrityError` de chave estrangeira. Aqui
+    a sessão é encerrada de forma limpa e a pessoa é levada de volta ao
+    login, com uma mensagem clara em vez de um erro técnico.
+    """
     @wraps(view_func)
     def wrapper(*args, **kwargs):
         if "usuario_id" not in session:
             flash("Faça login para continuar.", "alerta")
             return redirect(url_for("auth.login", proximo=request.path))
+
+        usuario_atual = obter_usuario_por_id(session["usuario_id"])
+        if not usuario_atual or not usuario_atual["ativo"]:
+            session.clear()
+            flash("Sua sessão não é mais válida (a conta foi removida ou desativada). Faça login novamente.", "alerta")
+            return redirect(url_for("auth.login", proximo=request.path))
+
         return view_func(*args, **kwargs)
     return wrapper
 

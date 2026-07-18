@@ -82,13 +82,12 @@ def create_app():
         }
 
     # --- Rota inicial ---
-    # Protegida por login. Encaminha cada perfil para sua área principal:
-    # administrador/supervisor -> Dashboard administrativo;
-    # operador -> Kiosk (seleção de sala).
-    from routes.auth import login_required
-
+    # Desde o Módulo 14, NÃO exige login: quem não estiver logado é
+    # enviado direto para o Kiosk (o terminal público da portaria), em
+    # vez de ser barrado por uma tela de login. Quem já estiver logado
+    # continua indo para sua área principal: administrador/supervisor ->
+    # Dashboard administrativo; operador -> Kiosk (seleção de sala).
     @app.route("/")
-    @login_required
     def index():
         if session.get("perfil") in ("administrador", "supervisor"):
             return redirect(url_for("admin.dashboard"))

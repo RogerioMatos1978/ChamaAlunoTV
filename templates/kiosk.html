@@ -29,8 +29,8 @@
                 <a href="{{ url_for('presenca.lista') }}" target="_blank" rel="noopener" class="btn btn-secundario">📋 Presença</a>
                 <a href="{{ url_for('screen.tela') }}" target="_blank" rel="noopener" class="btn btn-secundario">📺 Painel de TV</a>
                 <button id="btn-tema" class="botao-tema" title="Alternar tema claro/escuro">🌓</button>
-                <span>{{ usuario_logado }}</span>
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-pequeno">Sair</a>
+                {% if usuario_logado %}<span>{{ usuario_logado }}</span>{% endif %}
+                {% if perfil_logado %}<a href="{{ url_for('auth.logout') }}" class="btn btn-pequeno">Sair</a>{% endif %}
             {% endif %}
         </div>
     </header>
@@ -47,6 +47,7 @@
                     <span class="cartao-sala-nome">{{ sala.nome }}</span>
                     {% if sala.descricao %}<span class="cartao-sala-desc">{{ sala.descricao }}</span>{% endif %}
                     <span class="cartao-sala-contagem">{{ sala.alunos_aguardando }} aguardando</span>
+                    <span class="cartao-sala-tv-id" title="ID da TV pareada com esta sala">📺 TV nº {{ sala.id }}</span>
                 </a>
                 {% endfor %}
             </div>

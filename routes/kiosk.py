@@ -1,13 +1,20 @@
 """
 routes/kiosk.py
 ================
-Tela Kiosk (Módulo 5): onde o operador seleciona uma sala e chama os
-alunos. A remoção da fila, o registro de histórico e a sincronização
-das telas acontecem via Socket.IO (veja database/socket_events.py) —
-as rotas HTTP aqui servem apenas para carregar a página inicialmente.
+Tela Kiosk (Módulo 5, aberta ao público no Módulo 14): onde o
+responsável pela recepção seleciona uma sala e chama os alunos. A
+remoção da fila, o registro de histórico e a sincronização das telas
+acontecem via Socket.IO (veja database/socket_events.py) — as rotas
+HTTP aqui servem apenas para carregar a página inicialmente.
 
-Acessível a qualquer usuário logado (administrador, supervisor ou
-operador): é a ferramenta principal do dia a dia da secretaria.
+`selecionar_sala` e `fila_sala` (o Kiosk de chamada em si) são
+PÚBLICAS DE PROPÓSITO — sem exigir login — pois é o terminal fixo da
+portaria (ex.: TV interativa de 86"), pensado para abrir sozinho, sem
+ninguém precisar digitar usuário/senha ali. Já as rotas de "gestão"
+(ativo/presença/foto do usuário padrão, mais abaixo) continuam
+exigindo login — são telas de manutenção de dados, não o terminal
+público — por isso cada uma delas tem `@login_required` individual em
+vez de um `before_request` do blueprint inteiro.
 """
 
 from flask import Blueprint, render_template, flash, redirect, url_for, request, session
@@ -21,13 +28,6 @@ from database.services import (
 from routes.auth import login_required
 
 kiosk_bp = Blueprint("kiosk", __name__, url_prefix="/kiosk")
-
-
-@kiosk_bp.before_request
-@login_required
-def exigir_login():
-    """Qualquer perfil logado pode operar o Kiosk."""
-    pass
 
 
 def _notificar_dados_atualizados(tipo: str):
@@ -88,6 +88,7 @@ def fila_sala(sala_id):
 # dia a dia: se o aluno está ativo/inativo, se ele está presente/faltante
 # hoje, a foto do aluno e a foto da sala.
 @kiosk_bp.route("/gestao/alunos")
+@login_required
 def gestao_alunos():
     """Lista de alunos para o usuário padrão gerenciar ativo/presença/foto."""
     sala_id = request.args.get("sala_id", type=int)
@@ -102,6 +103,7 @@ def gestao_alunos():
 
 
 @kiosk_bp.route("/gestao/alunos/<int:aluno_id>/ativo", methods=["POST"])
+@login_required
 def gestao_aluno_ativo(aluno_id):
     """Alterna um aluno entre ativo/inativo (ex.: transferido para outra escola)."""
     aluno = obter_aluno(aluno_id)
@@ -122,6 +124,7 @@ def gestao_aluno_ativo(aluno_id):
 
 
 @kiosk_bp.route("/gestao/alunos/<int:aluno_id>/presenca", methods=["POST"])
+@login_required
 def gestao_aluno_presenca(aluno_id):
     """Marca a presença/falta de hoje de um aluno."""
     aluno = obter_aluno(aluno_id)
@@ -149,6 +152,7 @@ def gestao_aluno_presenca(aluno_id):
 
 
 @kiosk_bp.route("/gestao/alunos/<int:aluno_id>/foto", methods=["POST"])
+@login_required
 def gestao_aluno_foto(aluno_id):
     """Permite ao usuário padrão trocar apenas a foto do aluno (não os dados cadastrais)."""
     aluno = obter_aluno(aluno_id)
@@ -182,6 +186,7 @@ def gestao_aluno_foto(aluno_id):
 
 
 @kiosk_bp.route("/gestao/salas")
+@login_required
 def gestao_salas():
     """Lista de salas para o usuário padrão cadastrar apenas a foto."""
     salas = listar_salas()
@@ -189,6 +194,7 @@ def gestao_salas():
 
 
 @kiosk_bp.route("/gestao/salas/<int:sala_id>/foto", methods=["POST"])
+@login_required
 def gestao_sala_foto(sala_id):
     """Permite ao usuário padrão cadastrar/trocar a foto da sala (não os demais dados)."""
     sala = obter_sala(sala_id)

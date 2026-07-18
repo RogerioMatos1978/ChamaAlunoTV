@@ -97,6 +97,11 @@ exemplo `http://192.168.0.10:5000`. Veja mais em
       portaria (só o botão "Trocar sala") e painel de TV dedicado por
       sala de aula (`/screen/<sala_id>`), para o cenário de 1 Kiosk na
       recepção + 1 TV por sala
+- [x] **Módulo 14** — Kiosk e painel de TV ficam **públicos** (sem
+      login), pensados para abrir sozinhos no terminal da portaria e
+      nas TVs das salas; o painel de TV ganha uma tela de seleção de
+      sala (o professor escolhe, uma vez, qual sala é a da TV — fica
+      salvo naquele navegador) e um botão para trocar depois
 
 ## Funcionalidades
 
@@ -134,7 +139,17 @@ mesmo recebendo o mesmo evento em tempo real que todas as outras telas —
 o painel "geral" (`/screen/`) continua disponível para quem precisa ver
 todas as chamadas · Link "Abrir TV" e QR Code por sala (tanto para a
 tela de Presença quanto para o painel de TV dedicado), para facilitar
-configurar cada uma das TVs das salas.
+configurar cada uma das TVs das salas · Kiosk e painel de TV são
+públicos (sem login) — abrem sozinhos em qualquer terminal/TV da rede;
+as demais telas (administração, gestão do usuário padrão, Presença)
+continuam exigindo login normalmente · Painel de TV com autosseleção
+de sala: na primeira vez que uma TV abre, mostra uma grade de salas
+(como no Kiosk) para o professor escolher a sala daquela TV; a escolha
+fica salva no navegador da própria TV, então nas próximas vezes ela já
+abre direto no painel da sala escolhida — com botão para trocar depois
+· Proteção contra "sessão fantasma": se uma conta for excluída ou
+desativada enquanto ainda está logada em algum dispositivo, o sistema
+encerra essa sessão de forma limpa (sem erro técnico) na próxima ação.
 
 ## API REST
 
@@ -185,15 +200,32 @@ assim que possível.
 3. Libere a porta 5000 (ou a porta escolhida) no firewall da máquina
    servidora, se necessário.
 4. Para a tela de TV, abra `/screen` em tela cheia (botão ⛶ no canto
-   superior direito) e mantenha o navegador aberto continuamente.
-5. **Cenário com uma TV por sala de aula** (Módulo 13): em vez de `/screen`,
-   abra `/screen/<id-da-sala>` em cada TV — cada uma passa a exibir e
-   narrar somente as chamadas da própria sala. O id (ou o link pronto)
-   fica em **Painel administrativo → Salas → "Abrir TV"** ou no botão
-   **"QR TV"** (para escanear com o celular e abrir na TV). O Kiosk da
-   portaria continua sendo um só, normalmente em **modo simplificado**
-   (Configurações → Kiosk), mostrando apenas o botão "Trocar sala" para
-   quem estiver operando o atendimento.
+   superior direito) e mantenha o navegador aberto continuamente. Tanto
+   o Kiosk (`/kiosk`) quanto o painel de TV (`/screen`) são **públicos
+   desde o Módulo 14** — abrem direto, sem pedir login, bastando o
+   sistema estar no ar.
+5. **Cenário com uma TV por sala de aula** (Módulo 13/14): ao abrir
+   `/screen` pela primeira vez em cada TV, aparece uma grade com as
+   salas ativas — toque na sala em que aquela TV está instalada. A
+   escolha fica salva no navegador da própria TV (não precisa repetir
+   depois de reiniciar), e a partir daí ela só exibe/narra as chamadas
+   dessa sala. Para trocar depois, use o botão 🏫 no canto da tela.
+   Alternativamente, o Admin pode configurar o link direto de cada TV
+   (`/screen/<id-da-sala>`) em **Painel administrativo → Salas →
+   "Abrir TV"** ou pelo botão **"QR TV"**. O Kiosk da portaria continua
+   sendo um só, normalmente em **modo simplificado** (Configurações →
+   Kiosk), mostrando apenas o botão "Trocar sala" para quem estiver
+   operando o atendimento.
+
+## Kiosk e painel de TV são públicos — atenção à rede
+
+Desde o Módulo 14, `/kiosk` e `/screen` não pedem login de propósito
+(são terminais/TVs de uso público). Isso significa que qualquer
+dispositivo com acesso à rede onde o servidor está pode chamar alunos e
+ver a fila. Mantenha o servidor em uma rede local confiável (Wi-Fi/LAN
+da instituição) e **não exponha a porta do sistema diretamente para a
+internet** sem um proxy reverso com controle de acesso — todas as
+telas administrativas continuam exigindo login normalmente.
 
 ## Implantação em produção
 

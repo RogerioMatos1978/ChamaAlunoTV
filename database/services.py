@@ -63,6 +63,27 @@ def set_configuracao(chave: str, valor, descricao: str = None):
 
 
 # ---------------------------------------------------------------------------
+# Blindagem contra sessões "fantasma"
+# ---------------------------------------------------------------------------
+# `usuarios.id` é referenciado por chave estrangeira em `logs_auditoria`,
+# `chamadas` e `presencas`. Essas três tabelas usam `ON DELETE SET NULL`,
+# o que evita quebrar linhas JÁ EXISTENTES quando um usuário é excluído —
+# mas não protege um INSERT novo feito por uma sessão de navegador que
+# ainda guarda o `usuario_id` de uma conta excluída DEPOIS do login
+# (ex.: admin apaga o usuário enquanto ele continua logado em outra aba/
+# dispositivo). Sem essa checagem, qualquer ação dessa sessão (logout,
+# chamar aluno, marcar presença, etc.) derruba a página com
+# `sqlite3.IntegrityError: FOREIGN KEY constraint failed`.
+def _id_usuario_valido(usuario_id):
+    """Retorna `usuario_id` se a conta ainda existir no banco, senão None."""
+    if not usuario_id:
+        return None
+    with db_session() as conn:
+        existe = conn.execute("SELECT 1 FROM usuarios WHERE id = ?", (usuario_id,)).fetchone()
+    return usuario_id if existe else None
+
+
+# ---------------------------------------------------------------------------
 # Log de auditoria
 # ---------------------------------------------------------------------------
 def registrar_log(tipo: str, mensagem: str, usuario_id: int = None,
@@ -75,6 +96,7 @@ def registrar_log(tipo: str, mensagem: str, usuario_id: int = None,
     qualquer módulo futuro possa registrar eventos sem precisar alterar
     o schema do banco.
     """
+    usuario_id = _id_usuario_valido(usuario_id)
     with db_session() as conn:
         conn.execute(
             """
@@ -449,6 +471,7 @@ def marcar_presenca(aluno_id: int, status: str, data: str = None,
     if status not in ("presente", "faltante"):
         raise ValueError("Status de presença inválido. Use 'presente' ou 'faltante'.")
 
+    registrado_por = _id_usuario_valido(registrado_por)
     with db_session() as conn:
         if data:
             conn.execute(
@@ -1045,6 +1068,7 @@ def chamar_aluno(aluno_id: int, operador_id: int = None, operador_nome: str = No
         if not aluno or aluno["status"] != "aguardando":
             return None
 
+        operador_id = _id_usuario_valido(operador_id)
         conn.execute(
             "UPDATE alunos SET status = 'chamado', atualizado_em = datetime('now', 'localtime') WHERE id = ?",
             (aluno_id,),
@@ -1247,6 +1271,7 @@ def rechamar_aluno(aluno_id: int, operador_id: int = None, operador_nome: str = 
         if not aluno:
             return None
 
+        operador_id = _id_usuario_valido(operador_id)
         cursor = conn.execute(
             """
             INSERT INTO chamadas
