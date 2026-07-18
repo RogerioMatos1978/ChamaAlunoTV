@@ -249,6 +249,27 @@ exemplo `http://192.168.0.10:5000`. Veja mais em
       modo simplificado) e no painel de TV, para acessar o resto do
       sistema a partir de qualquer terminal público
 
+## Correções e ajustes recentes
+
+- **Sessão fantasma (erro `FOREIGN KEY constraint failed`)** — se uma
+  conta era excluída enquanto ainda estava logada em outro
+  dispositivo/terminal, a próxima ação dessa sessão (ex.: logout, uma
+  chamada) quebrava com erro técnico. Corrigido em duas camadas: (1) o
+  banco de dados agora valida, antes de qualquer gravação que referencie
+  um usuário (log de auditoria, chamada, presença), se aquele usuário
+  ainda existe; (2) `login_required` e a rota inicial (`/`) revalidam a
+  sessão a cada acesso e encerram sessões inválidas de forma limpa, com
+  a mensagem "Sua sessão não é mais válida... Faça login novamente." em
+  vez de um erro técnico.
+- **Rolagem travada no celular (painel de TV)** — a tela de seleção de
+  sala do painel de TV (`/screen/`) herdava o estilo de tela fixa usado
+  pela exibição de chamadas (correto para a TV, que mostra uma chamada
+  por vez e não precisa rolar). Em telas pequenas de celular, com várias
+  salas cadastradas, isso travava a rolagem e a página parecia
+  "congelada". Corrigido: a tela de seleção de sala agora rola
+  normalmente quando o conteúdo não cabe na tela; a exibição de
+  chamadas na TV continua fixa, como deve ser.
+
 ## Funcionalidades
 
 Autenticação com perfis (administrador, supervisor, operador) e senhas
