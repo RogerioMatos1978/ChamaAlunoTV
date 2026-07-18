@@ -499,14 +499,19 @@ tratamento de exceções, validação de entradas, proteção CSRF
 arquivo (`secure_filename`) e senhas sempre armazenadas como hash
 (Werkzeug/PBKDF2).
 
-## Prompt para desenvolvimento com IA
+## Prompt para desenvolvimento com IA e lógica interna
 
-O arquivo [`PROMPT.md`](PROMPT.md) contém uma especificação completa do
-projeto (stack, arquitetura, modelo de dados, regras de negócio, rotas,
-convenções) pensada para ser usada como contexto em outra IA de
-desenvolvimento. **Sempre que o código mudar, atualize o `README.md` e
-o `PROMPT.md` juntos**, para os dois nunca ficarem desatualizados em
-relação ao sistema real.
+- [`PROMPT.md`](PROMPT.md) — especificação completa do projeto (stack,
+  arquitetura, modelo de dados, regras de negócio, rotas, convenções),
+  pensada para ser usada como contexto em outra IA de desenvolvimento.
+- [`.LOGICA.md`](.LOGICA.md) — descreve **como o sistema decide as
+  coisas**: o fluxo passo a passo de uma chamada, máquinas de estado
+  do aluno, permissões, pareamento sala↔TV, sessão fantasma, etc.
+  Útil antes de alterar qualquer regra de negócio.
+
+**Sempre que o código mudar, atualize os três juntos —
+`README.md`, `PROMPT.md` e `.LOGICA.md`** — para nenhum deles ficar
+desatualizado em relação ao sistema real.
 
 ## Licença e uso
 

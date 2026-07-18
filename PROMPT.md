@@ -8,9 +8,10 @@
 > negócio, rotas e convenções — sem precisar reler todo o código-fonte.
 >
 > **Regra do projeto: sempre que o código mudar, atualize também o
-> `README.md` (documentação para humanos/uso) e este `PROMPT.md`
-> (contexto para IA) na mesma tarefa.** Nunca deixe os dois divergirem
-> do código real.
+> `README.md` (documentação para humanos/uso), este `PROMPT.md`
+> (contexto para IA) e o `.LOGICA.md` (fluxos e regras de negócio
+> passo a passo) na mesma tarefa.** Nunca deixe os três divergirem do
+> código real.
 
 ---
 
@@ -90,7 +91,8 @@ sistema_chamada_alunos/
 ├── backups/                  # backups automáticos/manuais do .db
 ├── logs/
 ├── README.md                 # documentação para humanos (instalação, uso, rotas)
-└── PROMPT.md                 # este arquivo (contexto para IA)
+├── PROMPT.md                 # este arquivo (contexto para IA)
+└── .LOGICA.md                # fluxos e regras de negócio passo a passo
 ```
 
 ## 4. Modelo de dados (SQLite)
@@ -307,9 +309,13 @@ específico de desenvolvimento. Ele substitui a necessidade de reler
 todo o código-fonte para entender o "porquê" das decisões de
 arquitetura — mas o código-fonte em si (`routes/`, `database/`,
 `templates/`, `static/`) continua sendo a fonte da verdade para
-detalhes de implementação linha a linha.
+detalhes de implementação linha a linha. Para alterar uma **regra de
+negócio** (não só uma tela), leia também o `.LOGICA.md` antes — ele
+descreve os fluxos passo a passo (ciclo de vida da chamada, máquina de
+estados do aluno, permissões, pareamento sala↔TV, sessão fantasma
+etc.) que este `PROMPT.md` só resume.
 
 **Lembrete permanente para quem mantém este projeto (humano ou IA):
 toda mudança de funcionalidade, rota, regra de negócio ou correção de
-bug relevante deve atualizar tanto o `README.md` quanto este
-`PROMPT.md`, mantendo os dois em sincronia com o código.**
+bug relevante deve atualizar `README.md`, este `PROMPT.md` e o
+`.LOGICA.md`, mantendo os três em sincronia com o código.**
