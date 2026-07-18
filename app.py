@@ -26,7 +26,7 @@ from config import get_config
 from database.models import init_db
 from database.services import (
     seed_admin_padrao, resolver_caminho_foto, resolver_caminho_foto_sala,
-    get_configuracao, criar_backup,
+    get_configuracao, criar_backup, obter_usuario_por_id,
 )
 from database.socket_events import register_socket_events
 
@@ -95,10 +95,20 @@ def create_app():
     # administrativo; operador -> Kiosk (seleção de sala).
     @app.route("/")
     def index():
-        if "usuario_id" in session:
+        # Valida a sessão de verdade (não só a presença de "usuario_id"):
+        # se a conta foi excluída/desativada depois do login (sessão
+        # "fantasma", veja routes/auth.py -> login_required), a home
+        # pública deve aparecer normalmente em vez de tentar redirecionar
+        # para uma área que essa sessão não pode mais acessar.
+        usuario_id = session.get("usuario_id")
+        usuario_atual = obter_usuario_por_id(usuario_id) if usuario_id else None
+
+        if usuario_atual and usuario_atual["ativo"]:
             if session.get("perfil") in ("administrador", "supervisor"):
                 return redirect(url_for("admin.dashboard"))
             return redirect(url_for("kiosk.selecionar_sala"))
+
+        session.clear()
         return render_template("home.html")
 
     @app.route("/healthcheck")

@@ -1009,6 +1009,21 @@ h1, h2, h3, h4 {
     font-family: var(--fonte-base);
 }
 
+/* Correção de scroll no celular: a tela "ociosa/chamada" (.tela-screen
+   sozinha) é fixa de propósito — é a TV mostrando uma única chamada por
+   vez, não deve rolar. Mas a tela de SELEÇÃO de sala (.screen-selecionar,
+   Módulo 14) é uma lista que pode ter mais salas do que cabem numa tela
+   pequena de celular; herdar `position: fixed; overflow: hidden` da
+   `.tela-screen` travava a rolagem e "congelava" a página nesse caso.
+   Aqui ela volta a rolar normalmente, sem afetar a TV. */
+.tela-screen.screen-selecionar {
+    position: static;
+    overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 100vh;
+    height: auto;
+}
+
 .screen-ocioso, .screen-chamada {
     position: absolute;
     inset: 0;
