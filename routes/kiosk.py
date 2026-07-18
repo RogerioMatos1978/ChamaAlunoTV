@@ -16,6 +16,7 @@ from database.services import (
     listar_salas, obter_sala, listar_alunos, obter_aluno, listar_ultimas_chamadas_sala,
     atualizar_status_ativo_aluno, marcar_presenca, extensao_permitida,
     salvar_foto_aluno, salvar_foto_sala, obter_ano_letivo_atual_id, registrar_log,
+    get_configuracao,
 )
 from routes.auth import login_required
 
@@ -35,11 +36,26 @@ def _notificar_dados_atualizados(tipo: str):
     socketio.emit("dados_atualizados", {"tipo": tipo})
 
 
+def _kiosk_simplificado() -> bool:
+    """
+    Módulo 13: quando ligado (padrão), o Kiosk mostra apenas o botão
+    "Trocar sala" no cabeçalho — pensado para o terminal fixo da
+    portaria (TV interativa de 86"), onde o responsável pela recepção
+    só precisa selecionar a sala e chamar o aluno, sem acesso aos links
+    de administração/gestão/presença/painel de TV/logout. Pode ser
+    desligado em Configurações administrativas, caso o mesmo Kiosk
+    também seja usado por um operador que precise desses atalhos.
+    """
+    return get_configuracao("kiosk_modo_simplificado", "1") == "1"
+
+
 @kiosk_bp.route("/")
 def selecionar_sala():
     """Tela inicial do Kiosk: escolha da sala a ser atendida."""
     salas = listar_salas(apenas_ativas=True)
-    return render_template("kiosk.html", modo="selecionar", salas=salas)
+    return render_template(
+        "kiosk.html", modo="selecionar", salas=salas, kiosk_simplificado=_kiosk_simplificado(),
+    )
 
 
 @kiosk_bp.route("/<int:sala_id>")
@@ -57,7 +73,10 @@ def fila_sala(sala_id):
         ativo=1, excluir_faltantes_hoje=True,
     )
     recentes = listar_ultimas_chamadas_sala(sala["nome"], limite=6)
-    return render_template("kiosk.html", modo="fila", sala=sala, alunos=alunos, recentes=recentes)
+    return render_template(
+        "kiosk.html", modo="fila", sala=sala, alunos=alunos, recentes=recentes,
+        kiosk_simplificado=_kiosk_simplificado(),
+    )
 
 
 # ---------------------------------------------------------------------------

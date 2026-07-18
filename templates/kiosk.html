@@ -13,21 +13,25 @@
 
         <div class="kiosk-usuario">
             {% if modo == 'fila' %}
-            <a href="{{ url_for('kiosk.selecionar_sala') }}" class="btn btn-secundario">↩ Trocar de sala</a>
-            <label class="campo-guiche">
-                Guichê:
-                <input type="text" id="campo-guiche" maxlength="10" placeholder="ex.: 1">
-            </label>
+            <a href="{{ url_for('kiosk.selecionar_sala') }}" class="btn btn-secundario btn-trocar-sala">↩ Trocar sala</a>
             {% endif %}
-            {% if perfil_logado in ('administrador', 'supervisor') %}
-            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secundario">Painel administrativo</a>
+            {% if not kiosk_simplificado %}
+                {% if modo == 'fila' %}
+                <label class="campo-guiche">
+                    Guichê:
+                    <input type="text" id="campo-guiche" maxlength="10" placeholder="ex.: 1">
+                </label>
+                {% endif %}
+                {% if perfil_logado in ('administrador', 'supervisor') %}
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secundario">Painel administrativo</a>
+                {% endif %}
+                <a href="{{ url_for('kiosk.gestao_alunos') }}" class="btn btn-secundario">🎓 Gerenciar alunos</a>
+                <a href="{{ url_for('presenca.lista') }}" target="_blank" rel="noopener" class="btn btn-secundario">📋 Presença</a>
+                <a href="{{ url_for('screen.tela') }}" target="_blank" rel="noopener" class="btn btn-secundario">📺 Painel de TV</a>
+                <button id="btn-tema" class="botao-tema" title="Alternar tema claro/escuro">🌓</button>
+                <span>{{ usuario_logado }}</span>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-pequeno">Sair</a>
             {% endif %}
-            <a href="{{ url_for('kiosk.gestao_alunos') }}" class="btn btn-secundario">🎓 Gerenciar alunos</a>
-            <a href="{{ url_for('presenca.lista') }}" target="_blank" rel="noopener" class="btn btn-secundario">📋 Presença</a>
-            <a href="{{ url_for('screen.tela') }}" target="_blank" rel="noopener" class="btn btn-secundario">📺 Painel de TV</a>
-            <button id="btn-tema" class="botao-tema" title="Alternar tema claro/escuro">🌓</button>
-            <span>{{ usuario_logado }}</span>
-            <a href="{{ url_for('auth.logout') }}" class="btn btn-pequeno">Sair</a>
         </div>
     </header>
 

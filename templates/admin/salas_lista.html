@@ -42,8 +42,12 @@
                     {% endif %}
                 </td>
                 <td class="celula-acoes">
+                    <a href="{{ url_for('screen.tela_sala', sala_id=sala.id) }}" target="_blank" rel="noopener"
+                       class="btn btn-pequeno" title="Abre o painel de TV desta sala — use para configurar a TV instalada na sala">📺 Abrir TV</a>
+                    <button type="button" class="btn btn-pequeno btn-qrcode-tv" data-sala-nome="{{ sala.nome }}"
+                            data-sala-id="{{ sala.id }}">QR TV</button>
                     <button type="button" class="btn btn-pequeno btn-qrcode" data-sala-nome="{{ sala.nome }}"
-                            data-sala-id="{{ sala.id }}">QR Code</button>
+                            data-sala-id="{{ sala.id }}">QR Presença</button>
                     <a href="{{ url_for('admin.salas_editar', sala_id=sala.id) }}" class="btn btn-pequeno">Editar</a>
                     <form method="POST" action="{{ url_for('admin.salas_excluir', sala_id=sala.id) }}"
                           onsubmit="return confirm('Excluir a sala \'{{ sala.nome }}\'? Os alunos vinculados não serão apagados.');">
@@ -79,8 +83,15 @@
 <script>
     document.querySelectorAll(".btn-qrcode").forEach(function (botao) {
         botao.addEventListener("click", function () {
-            document.getElementById("qrcode-titulo").textContent = "QR Code — " + botao.dataset.salaNome;
+            document.getElementById("qrcode-titulo").textContent = "QR Presença — " + botao.dataset.salaNome;
             document.getElementById("qrcode-imagem").src = "/admin/salas/" + botao.dataset.salaId + "/qrcode.png";
+            document.getElementById("modal-qrcode").classList.remove("oculto");
+        });
+    });
+    document.querySelectorAll(".btn-qrcode-tv").forEach(function (botao) {
+        botao.addEventListener("click", function () {
+            document.getElementById("qrcode-titulo").textContent = "QR do painel de TV — " + botao.dataset.salaNome;
+            document.getElementById("qrcode-imagem").src = "/admin/salas/" + botao.dataset.salaId + "/qrcode-tv.png";
             document.getElementById("modal-qrcode").classList.remove("oculto");
         });
     });

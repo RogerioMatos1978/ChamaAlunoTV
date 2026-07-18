@@ -50,6 +50,19 @@
             </div>
         </div>
 
+        <h2 class="titulo-secao-form">Kiosk (Módulo 13)</h2>
+        <p class="texto-suave">
+            Pensado para um terminal fixo na portaria (ex.: TV interativa de 86")
+            usado pelo responsável pela recepção: mostra apenas o botão de
+            trocar de sala, escondendo os demais atalhos (painel administrativo,
+            gestão, presença, painel de TV, tema, sair). Desligue se este mesmo
+            Kiosk também for usado por um operador que precise desses atalhos.
+        </p>
+        <label class="opcao-checkbox">
+            <input type="checkbox" name="kiosk_modo_simplificado" {{ 'checked' if valores.kiosk_modo_simplificado == '1' else '' }}>
+            Modo simplificado (somente o botão "Trocar sala")
+        </label>
+
         <div class="acoes-formulario">
             <button type="submit" class="btn btn-primario">Salvar configurações</button>
         </div>

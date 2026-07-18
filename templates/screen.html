@@ -10,6 +10,9 @@
         <img src="{{ url_for('static', filename='img/logos/logo.png') }}"
              alt="{{ nome_instituicao }}" class="screen-logo-ocioso" onerror="this.style.display='none'">
         <h1 class="screen-instituicao">{{ nome_instituicao }}</h1>
+        {% if sala %}
+        <p class="screen-sala-ocioso" style="border-color: {{ sala.cor }};">{{ sala.nome }}</p>
+        {% endif %}
         <p class="screen-aguardando">Aguardando chamadas<span class="pontos-piscando">...</span></p>
         <p class="screen-relogio" id="screen-relogio"></p>
     </div>
@@ -24,7 +27,7 @@
 
     <!-- ---------- Barra lateral: últimos 3 chamados (Módulo 12) ---------- -->
     <aside class="screen-sidebar" id="screen-sidebar">
-        <h2>Últimos chamados</h2>
+        <h2>{{ 'Últimos chamados desta sala' if sala else 'Últimos chamados' }}</h2>
         <div class="screen-sidebar-lista" id="screen-sidebar-lista">
             {% for chamada in ultimas %}
             <div class="screen-sidebar-item">
@@ -90,7 +93,11 @@
         fotosBase: "{{ url_for('static', filename='fotos/') }}",
         avatarPadrao: "{{ url_for('static', filename='img/icons/default_avatar.png') }}",
         nomeInstituicao: {{ nome_instituicao | tojson }},
-        repeticoesNarracao: {{ config.NARRACAO_REPETICOES | default(2) }}
+        repeticoesNarracao: {{ config.NARRACAO_REPETICOES | default(2) }},
+        // Módulo 13: quando definido, esta TV é dedicada a UMA sala — o
+        // screen.js ignora qualquer chamada de outra sala (não exibe,
+        // não narra, não entra na lista "Últimos chamados" desta TV).
+        salaNome: {{ sala.nome | tojson if sala else 'null' }}
     };
 </script>
 <script src="{{ url_for('static', filename='js/screen.js') }}"></script>

@@ -53,6 +53,12 @@
     const socket = window.socketApp;
 
     socket.on("aluno_chamado", function (chamada) {
+        // Módulo 13: se esta TV é dedicada a uma sala (CONFIG.salaNome
+        // definido), ignora qualquer chamada que não seja dessa sala —
+        // é assim que 20 TVs, uma por sala de aula, só mostram/narram a
+        // própria chamada mesmo recebendo o mesmo evento de broadcast.
+        if (CONFIG.salaNome && chamada.sala_nome !== CONFIG.salaNome) return;
+
         filaChamadas.push(chamada);
         processarFila();
         adicionarNaSidebar(chamada);

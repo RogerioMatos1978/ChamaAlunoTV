@@ -703,6 +703,7 @@ def configuracoes():
         set_configuracao("cor_footer", request.form.get("cor_footer") or "#6CC2BA")
         set_configuracao("narracao_idioma", request.form.get("narracao_idioma") or "pt-BR")
         set_configuracao("narracao_repeticoes", request.form.get("narracao_repeticoes") or "2")
+        set_configuracao("kiosk_modo_simplificado", "1" if request.form.get("kiosk_modo_simplificado") == "on" else "0")
 
         arquivo_logo = request.files.get("logo")
         if arquivo_logo and arquivo_logo.filename:
@@ -723,6 +724,7 @@ def configuracoes():
         "cor_footer": get_configuracao("cor_footer", "#6CC2BA"),
         "narracao_idioma": get_configuracao("narracao_idioma", "pt-BR"),
         "narracao_repeticoes": get_configuracao("narracao_repeticoes", "2"),
+        "kiosk_modo_simplificado": get_configuracao("kiosk_modo_simplificado", "1"),
     }
     return render_template("admin/configuracoes.html", valores=valores)
 
@@ -899,6 +901,30 @@ def sala_qrcode(sala_id):
         return redirect(url_for("admin.salas_lista"))
 
     url_destino = url_for("presenca.lista", sala_id=sala_id, _external=True)
+    imagem = qrcode.make(url_destino)
+
+    buffer = io.BytesIO()
+    imagem.save(buffer, format="PNG")
+    buffer.seek(0)
+    return send_file(buffer, mimetype="image/png")
+
+
+@admin_bp.route("/salas/<int:sala_id>/qrcode-tv.png")
+def sala_qrcode_tv(sala_id):
+    """
+    QR Code apontando para o painel de TV dedicado desta sala
+    (`/screen/<sala_id>`, Módulo 13) — facilita configurar cada uma das
+    TVs interativas das salas de aula: basta escanear com o celular
+    (ou outro dispositivo com câmera) usado para abrir o link na TV.
+    """
+    import qrcode
+
+    sala = obter_sala(sala_id)
+    if not sala:
+        flash("Sala não encontrada.", "erro")
+        return redirect(url_for("admin.salas_lista"))
+
+    url_destino = url_for("screen.tela_sala", sala_id=sala_id, _external=True)
     imagem = qrcode.make(url_destino)
 
     buffer = io.BytesIO()

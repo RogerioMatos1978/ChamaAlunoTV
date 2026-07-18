@@ -93,6 +93,10 @@ exemplo `http://192.168.0.10:5000`. Veja mais em
 - [x] **Módulo 12** — Ano letivo, aluno ativo/inativo, presença diária e
       permissões refinadas (Admin x usuário padrão), foto e CSV de salas,
       sidebar de últimos chamados no Screen
+- [x] **Módulo 13** — Kiosk em modo simplificado para terminal fixo da
+      portaria (só o botão "Trocar sala") e painel de TV dedicado por
+      sala de aula (`/screen/<sala_id>`), para o cenário de 1 Kiosk na
+      recepção + 1 TV por sala
 
 ## Funcionalidades
 
@@ -121,7 +125,16 @@ Usuário padrão (operador) gerencia no dia a dia, sem acesso ao cadastro
 completo: situação ativo/inativo do aluno, presença/falta do dia, foto do
 aluno e foto da sala (telas em "Kiosk → Gerenciar alunos/salas") · Sidebar
 com os últimos 3 alunos chamados na tela Screen (TV), atualizada em tempo
-real.
+real · Kiosk em "modo simplificado" (ligado por padrão, ajustável em
+Configurações): mostra apenas o botão "Trocar sala", pensado para um
+terminal fixo na portaria (ex.: TV interativa de 86") operado pela
+recepção · Painel de TV dedicado por sala de aula (`/screen/<sala_id>`):
+cada uma das TVs das salas só exibe/narra as chamadas da própria sala,
+mesmo recebendo o mesmo evento em tempo real que todas as outras telas —
+o painel "geral" (`/screen/`) continua disponível para quem precisa ver
+todas as chamadas · Link "Abrir TV" e QR Code por sala (tanto para a
+tela de Presença quanto para o painel de TV dedicado), para facilitar
+configurar cada uma das TVs das salas.
 
 ## API REST
 
@@ -173,6 +186,14 @@ assim que possível.
    servidora, se necessário.
 4. Para a tela de TV, abra `/screen` em tela cheia (botão ⛶ no canto
    superior direito) e mantenha o navegador aberto continuamente.
+5. **Cenário com uma TV por sala de aula** (Módulo 13): em vez de `/screen`,
+   abra `/screen/<id-da-sala>` em cada TV — cada uma passa a exibir e
+   narrar somente as chamadas da própria sala. O id (ou o link pronto)
+   fica em **Painel administrativo → Salas → "Abrir TV"** ou no botão
+   **"QR TV"** (para escanear com o celular e abrir na TV). O Kiosk da
+   portaria continua sendo um só, normalmente em **modo simplificado**
+   (Configurações → Kiosk), mostrando apenas o botão "Trocar sala" para
+   quem estiver operando o atendimento.
 
 ## Implantação em produção
 
