@@ -57,9 +57,23 @@
             </div>
         </div>
 
+        <label for="ano_letivo_id">Ano letivo</label>
+        <select id="ano_letivo_id" name="ano_letivo_id">
+            <option value="">Sem ano letivo definido</option>
+            {% for ano in anos_letivos %}
+            <option value="{{ ano.id }}"
+                {{ 'selected' if aluno and aluno.ano_letivo_id == ano.id else '' }}>{{ ano.nome }}</option>
+            {% endfor %}
+        </select>
+
         <label class="opcao-checkbox">
             <input type="checkbox" name="prioridade" {{ 'checked' if aluno and aluno.prioridade else '' }}>
             Atendimento prioritário (aparece primeiro na fila)
+        </label>
+
+        <label class="opcao-checkbox">
+            <input type="checkbox" name="ativo" {{ 'checked' if (aluno is none) or (aluno and aluno.ativo) else '' }}>
+            Aluno ativo (desmarque apenas se o aluno foi transferido para outra escola)
         </label>
 
         <label for="observacoes">Observações</label>

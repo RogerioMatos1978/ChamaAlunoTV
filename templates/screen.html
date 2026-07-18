@@ -22,6 +22,27 @@
         <p id="screen-sala" class="screen-sala"></p>
     </div>
 
+    <!-- ---------- Barra lateral: últimos 3 chamados (Módulo 12) ---------- -->
+    <aside class="screen-sidebar" id="screen-sidebar">
+        <h2>Últimos chamados</h2>
+        <div class="screen-sidebar-lista" id="screen-sidebar-lista">
+            {% for chamada in ultimas %}
+            <div class="screen-sidebar-item">
+                <img src="{{ foto_url(chamada.foto) }}" alt="{{ chamada.aluno_nome }}"
+                     onerror="this.onerror=null;this.src='{{ url_for('static', filename='img/icons/default_avatar.png') }}';">
+                <div class="screen-sidebar-info">
+                    <span class="screen-sidebar-nome">{{ chamada.aluno_nome }}</span>
+                    <span class="screen-sidebar-detalhe">{{ chamada.turma or '' }}</span>
+                    <span class="screen-sidebar-detalhe">{{ chamada.sala_nome or '' }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <p class="texto-suave" id="screen-sidebar-vazio" {{ '' if not ultimas else 'style=display:none;' }}>
+            Nenhuma chamada registrada ainda.
+        </p>
+    </aside>
+
     <!-- ---------- Botões flutuantes (tela cheia / configurações de voz) ---------- -->
     <div class="screen-controles">
         <button id="btn-config-voz" class="botao-controle" title="Configurar narração">⚙</button>

@@ -23,6 +23,7 @@ DATABASE_PATH = DATABASE_DIR / "alunos.db"
 
 STATIC_DIR = BASE_DIR / "static"
 FOTOS_DIR = STATIC_DIR / "fotos"
+SALAS_DIR = STATIC_DIR / "fotos_salas"    # fotos das salas (Módulo 12)
 UPLOADS_DIR = STATIC_DIR / "uploads"
 LOGOS_DIR = STATIC_DIR / "img" / "logos"
 ICONS_DIR = STATIC_DIR / "img" / "icons"
@@ -31,7 +32,7 @@ BACKUPS_DIR = BASE_DIR / "backups"
 LOGS_DIR = BASE_DIR / "logs"
 
 # Garante que as pastas essenciais existam mesmo em uma instalação nova
-for _dir in (DATABASE_DIR, FOTOS_DIR, UPLOADS_DIR, LOGOS_DIR, ICONS_DIR, BACKUPS_DIR, LOGS_DIR):
+for _dir in (DATABASE_DIR, FOTOS_DIR, SALAS_DIR, UPLOADS_DIR, LOGOS_DIR, ICONS_DIR, BACKUPS_DIR, LOGS_DIR):
     _dir.mkdir(parents=True, exist_ok=True)
 
 
@@ -58,6 +59,7 @@ class Config:
     # `from config import Config` e usar `Config.FOTOS_DIR`, `Config.BACKUPS_DIR`
     # etc. de forma consistente com o restante das configurações.
     FOTOS_DIR = FOTOS_DIR
+    SALAS_DIR = SALAS_DIR
     UPLOADS_DIR = UPLOADS_DIR
     LOGOS_DIR = LOGOS_DIR
     ICONS_DIR = ICONS_DIR

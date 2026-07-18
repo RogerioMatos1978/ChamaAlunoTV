@@ -8,7 +8,6 @@
 # sempre baixa a versão mais nova com um "wheel" pronto para a sua
 # versão do Python, em vez de tentar compilar do zero (o que exige
 # Visual Studio Build Tools no Windows e costuma falhar).
-
 ##############################################################################
 
 # --- Núcleo web (Python puro) ---

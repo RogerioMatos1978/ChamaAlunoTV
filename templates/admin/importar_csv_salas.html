@@ -1,0 +1,53 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}Importar salas{% endblock %}
+{% block admin_cabecalho %}Importar salas (CSV){% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="cartao formulario-cartao">
+    <p class="texto-suave" style="margin-bottom: 1rem;">
+        O arquivo deve estar no formato abaixo, com colunas separadas por ponto e vírgula (<code>;</code>):
+    </p>
+    <pre class="bloco-exemplo-csv">nome;descricao;cor
+Secretaria — Guichê 1;Atendimento de matrícula;#164194</pre>
+    <p class="texto-suave" style="margin-bottom: 1.5rem;">
+        Salas já cadastradas (mesmo nome) são atualizadas, nunca duplicadas. A coluna
+        "cor" é opcional (código hexadecimal, ex.: <code>#164194</code>); se vazia, usa a cor padrão.
+        Esta importação é restrita ao Admin — o cadastro da foto da sala fica disponível
+        também para o usuário padrão, em <em>Kiosk → Gerenciar salas</em>.
+    </p>
+
+    <form method="POST" enctype="multipart/form-data" class="formulario">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="arquivo_csv">Arquivo CSV</label>
+        <input type="file" id="arquivo_csv" name="arquivo_csv" accept=".csv" required>
+
+        <div class="acoes-formulario">
+            <a href="{{ url_for('admin.salas_lista') }}" class="btn btn-secundario">Voltar</a>
+            <button type="submit" class="btn btn-primario">Importar</button>
+        </div>
+    </form>
+</div>
+
+{% if resumo %}
+<div class="cartao secao-resumo-importacao">
+    <h2>Resumo da importação</h2>
+    <div class="grade-indicadores">
+        <div class="cartao indicador indicador-sucesso">
+            <span class="indicador-valor">{{ resumo.criados }}</span>
+            <span class="indicador-rotulo">Salas criadas</span>
+        </div>
+        <div class="cartao indicador">
+            <span class="indicador-valor">{{ resumo.atualizados }}</span>
+            <span class="indicador-rotulo">Salas atualizadas</span>
+        </div>
+        <div class="cartao indicador indicador-alerta">
+            <span class="indicador-valor">{{ resumo.ignorados }}</span>
+            <span class="indicador-rotulo">Linhas ignoradas</span>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

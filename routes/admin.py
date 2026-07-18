@@ -22,7 +22,8 @@ from database.services import (
     existe_nome_sala, obter_estatisticas_dashboard, registrar_log,
     listar_alunos, obter_aluno, criar_aluno, atualizar_aluno, excluir_aluno,
     salvar_foto_aluno, excluir_foto_aluno, extensao_permitida,
-    importar_alunos_csv,
+    importar_alunos_csv, importar_salas_csv,
+    salvar_foto_sala, excluir_foto_sala,
     listar_historico, obter_nomes_salas_no_historico, obter_chamada,
     gerar_csv_historico, gerar_excel_historico, gerar_pdf_historico,
     rechamar_aluno,
@@ -32,6 +33,9 @@ from database.services import (
     get_configuracao, set_configuracao,
     listar_logs,
     criar_backup, listar_backups, restaurar_backup,
+    listar_anos_letivos, obter_ano_letivo, criar_ano_letivo, atualizar_ano_letivo,
+    excluir_ano_letivo, existe_nome_ano_letivo, obter_ano_letivo_atual_id,
+    definir_ano_letivo_atual,
 )
 from routes.auth import perfil_required
 
@@ -100,6 +104,17 @@ def salas_nova():
             return render_template("admin/sala_form.html", sala=dados, modo="nova")
 
         sala_id = criar_sala(**dados)
+
+        arquivo_foto = request.files.get("foto")
+        if arquivo_foto and arquivo_foto.filename:
+            if extensao_permitida(arquivo_foto.filename):
+                try:
+                    salvar_foto_sala(arquivo_foto, sala_id)
+                except ValueError as erro:
+                    flash(str(erro), "alerta")
+            else:
+                flash("Formato de foto não suportado. Use PNG, JPG, JPEG ou WEBP.", "alerta")
+
         registrar_log(tipo="alteracao", mensagem=f"Sala \"{dados['nome']}\" criada (id={sala_id}).")
         _notificar_dados_atualizados("salas")
         flash(f"Sala \"{dados['nome']}\" criada com sucesso.", "sucesso")
@@ -128,6 +143,17 @@ def salas_editar(sala_id):
             return render_template("admin/sala_form.html", sala={**sala, **dados}, modo="editar")
 
         atualizar_sala(sala_id, **dados)
+
+        arquivo_foto = request.files.get("foto")
+        if arquivo_foto and arquivo_foto.filename:
+            if extensao_permitida(arquivo_foto.filename):
+                try:
+                    salvar_foto_sala(arquivo_foto, sala_id)
+                except ValueError as erro:
+                    flash(str(erro), "alerta")
+            else:
+                flash("Formato de foto não suportado. Use PNG, JPG, JPEG ou WEBP.", "alerta")
+
         registrar_log(tipo="alteracao", mensagem=f"Sala \"{dados['nome']}\" (id={sala_id}) atualizada.")
         _notificar_dados_atualizados("salas")
         flash(f"Sala \"{dados['nome']}\" atualizada com sucesso.", "sucesso")
@@ -188,18 +214,19 @@ def alunos_lista():
 def alunos_novo():
     """Formulário de cadastro de um novo aluno (com upload de foto opcional)."""
     salas = listar_salas()
+    anos_letivos = listar_anos_letivos()
 
     if request.method == "POST":
         dados = _extrair_dados_formulario_aluno()
 
         if not dados["nome"]:
             flash("O nome do aluno é obrigatório.", "erro")
-            return render_template("admin/aluno_form.html", aluno=dados, salas=salas, modo="novo")
+            return render_template("admin/aluno_form.html", aluno=dados, salas=salas, anos_letivos=anos_letivos, modo="novo")
 
         arquivo_foto = request.files.get("foto")
         if arquivo_foto and arquivo_foto.filename and not extensao_permitida(arquivo_foto.filename):
             flash("Formato de foto não suportado. Use PNG, JPG, JPEG ou WEBP.", "erro")
-            return render_template("admin/aluno_form.html", aluno=dados, salas=salas, modo="novo")
+            return render_template("admin/aluno_form.html", aluno=dados, salas=salas, anos_letivos=anos_letivos, modo="novo")
 
         aluno_id = criar_aluno(**dados)
 
@@ -215,7 +242,7 @@ def alunos_novo():
         flash(f"Aluno \"{dados['nome']}\" cadastrado com sucesso.", "sucesso")
         return redirect(url_for("admin.alunos_lista"))
 
-    return render_template("admin/aluno_form.html", aluno=None, salas=salas, modo="novo")
+    return render_template("admin/aluno_form.html", aluno=None, salas=salas, anos_letivos=anos_letivos, modo="novo")
 
 
 @admin_bp.route("/alunos/<int:aluno_id>/editar", methods=["GET", "POST"])
@@ -227,20 +254,21 @@ def alunos_editar(aluno_id):
         return redirect(url_for("admin.alunos_lista"))
 
     salas = listar_salas()
+    anos_letivos = listar_anos_letivos()
 
     if request.method == "POST":
         dados = _extrair_dados_formulario_aluno()
 
         if not dados["nome"]:
             flash("O nome do aluno é obrigatório.", "erro")
-            return render_template("admin/aluno_form.html", aluno={**aluno, **dados}, salas=salas, modo="editar")
+            return render_template("admin/aluno_form.html", aluno={**aluno, **dados}, salas=salas, anos_letivos=anos_letivos, modo="editar")
 
         arquivo_foto = request.files.get("foto")
         nome_foto = aluno["foto"]
         if arquivo_foto and arquivo_foto.filename:
             if not extensao_permitida(arquivo_foto.filename):
                 flash("Formato de foto não suportado. Use PNG, JPG, JPEG ou WEBP.", "erro")
-                return render_template("admin/aluno_form.html", aluno={**aluno, **dados}, salas=salas, modo="editar")
+                return render_template("admin/aluno_form.html", aluno={**aluno, **dados}, salas=salas, anos_letivos=anos_letivos, modo="editar")
             try:
                 nome_foto = salvar_foto_aluno(arquivo_foto, aluno_id)
             except ValueError as erro:
@@ -252,7 +280,7 @@ def alunos_editar(aluno_id):
         flash(f"Aluno \"{dados['nome']}\" atualizado com sucesso.", "sucesso")
         return redirect(url_for("admin.alunos_lista"))
 
-    return render_template("admin/aluno_form.html", aluno=aluno, salas=salas, modo="editar")
+    return render_template("admin/aluno_form.html", aluno=aluno, salas=salas, anos_letivos=anos_letivos, modo="editar")
 
 
 @admin_bp.route("/alunos/<int:aluno_id>/excluir", methods=["POST"])
@@ -277,6 +305,11 @@ def _extrair_dados_formulario_aluno() -> dict:
     except ValueError:
         sala_id = None
 
+    try:
+        ano_letivo_id = int(request.form.get("ano_letivo_id") or 0) or None
+    except ValueError:
+        ano_letivo_id = None
+
     return {
         "nome": (request.form.get("nome") or "").strip(),
         "turma": (request.form.get("turma") or "").strip() or None,
@@ -285,6 +318,8 @@ def _extrair_dados_formulario_aluno() -> dict:
         "cpf": (request.form.get("cpf") or "").strip() or None,
         "observacoes": (request.form.get("observacoes") or "").strip() or None,
         "prioridade": 1 if request.form.get("prioridade") == "on" else 0,
+        "ativo": request.form.get("ativo") == "on",
+        "ano_letivo_id": ano_letivo_id,
     }
 
 
@@ -332,6 +367,74 @@ def alunos_importar():
         return render_template("admin/importar_csv.html", resumo=resumo)
 
     return render_template("admin/importar_csv.html", resumo=None)
+
+
+@admin_bp.route("/salas/importar", methods=["GET", "POST"])
+def salas_importar():
+    """
+    Importação em massa de salas a partir de um arquivo CSV no formato:
+
+        nome;descricao;cor
+
+    Salas já existentes (mesmo nome) são atualizadas, nunca duplicadas.
+    Assim como a importação de alunos, fica restrita ao Admin/Supervisor
+    (o blueprint `admin_bp` já bloqueia o perfil "operador" por completo).
+    """
+    if request.method == "POST":
+        arquivo = request.files.get("arquivo_csv")
+        if not arquivo or not arquivo.filename:
+            flash("Selecione um arquivo CSV para importar.", "erro")
+            return render_template("admin/importar_csv_salas.html", resumo=None)
+
+        if not arquivo.filename.lower().endswith(".csv"):
+            flash("O arquivo precisa ter a extensão .csv.", "erro")
+            return render_template("admin/importar_csv_salas.html", resumo=None)
+
+        try:
+            linhas = _ler_linhas_csv_salas(arquivo)
+        except (UnicodeDecodeError, csv.Error) as erro:
+            flash(f"Não foi possível ler o arquivo: {erro}", "erro")
+            return render_template("admin/importar_csv_salas.html", resumo=None)
+
+        resumo = importar_salas_csv(linhas)
+        registrar_log(
+            tipo="importacao",
+            mensagem=(
+                f"Importação CSV de salas concluída: {resumo['criados']} criadas, "
+                f"{resumo['atualizados']} atualizadas, {resumo['ignorados']} linhas ignoradas."
+            ),
+        )
+        if resumo["criados"] or resumo["atualizados"]:
+            _notificar_dados_atualizados("salas")
+        flash("Importação concluída com sucesso.", "sucesso")
+        return render_template("admin/importar_csv_salas.html", resumo=resumo)
+
+    return render_template("admin/importar_csv_salas.html", resumo=None)
+
+
+def _ler_linhas_csv_salas(arquivo) -> list:
+    """Lê o CSV de salas (delimitador ';') e retorna uma lista de dicionários com 'nome', 'descricao', 'cor'."""
+    conteudo_bytes = arquivo.read()
+    try:
+        texto = conteudo_bytes.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        texto = conteudo_bytes.decode("latin-1")
+
+    leitor = csv.reader(io.StringIO(texto), delimiter=";")
+    linhas_brutas = [linha for linha in leitor if any(campo.strip() for campo in linha)]
+
+    if not linhas_brutas:
+        return []
+
+    primeira = [campo.strip().lower() for campo in linhas_brutas[0]]
+    inicio = 1 if primeira and primeira[0] in ("sala", "nome") else 0
+
+    colunas = ["nome", "descricao", "cor"]
+    resultado = []
+    for linha in linhas_brutas[inicio:]:
+        item = {colunas[i]: (linha[i] if i < len(linha) else "") for i in range(len(colunas))}
+        resultado.append(item)
+    return resultado
 
 
 def _ler_linhas_csv(arquivo) -> list:
@@ -682,6 +785,100 @@ def backup_restaurar(nome_arquivo):
     except FileNotFoundError:
         flash("Arquivo de backup não encontrado.", "erro")
     return redirect(url_for("admin.backup_lista"))
+
+
+# ---------------------------------------------------------------------------
+# Anos letivos (Módulo 12)
+# ---------------------------------------------------------------------------
+@admin_bp.route("/anos-letivos")
+def anos_letivos_lista():
+    """Lista os anos letivos cadastrados e destaca qual é o "ano letivo atual"."""
+    anos = listar_anos_letivos()
+    atual_id = obter_ano_letivo_atual_id()
+    return render_template("admin/anos_letivos_lista.html", anos=anos, atual_id=atual_id)
+
+
+@admin_bp.route("/anos-letivos/novo", methods=["GET", "POST"])
+def anos_letivos_novo():
+    """Cadastro de um novo ano letivo (ex.: "2026")."""
+    if request.method == "POST":
+        nome = (request.form.get("nome") or "").strip()
+        data_inicio = (request.form.get("data_inicio") or "").strip() or None
+        data_fim = (request.form.get("data_fim") or "").strip() or None
+        ativo = request.form.get("ativo") == "on"
+
+        if not nome:
+            flash("O nome do ano letivo é obrigatório.", "erro")
+            return render_template("admin/ano_letivo_form.html", ano=request.form, modo="novo")
+
+        if existe_nome_ano_letivo(nome):
+            flash(f"Já existe um ano letivo chamado \"{nome}\".", "erro")
+            return render_template("admin/ano_letivo_form.html", ano=request.form, modo="novo")
+
+        ano_id = criar_ano_letivo(nome=nome, data_inicio=data_inicio, data_fim=data_fim, ativo=ativo)
+        if not obter_ano_letivo_atual_id():
+            definir_ano_letivo_atual(ano_id)  # primeiro ano letivo cadastrado vira o atual automaticamente
+        registrar_log(tipo="alteracao", mensagem=f"Ano letivo \"{nome}\" criado (id={ano_id}).")
+        flash(f"Ano letivo \"{nome}\" criado com sucesso.", "sucesso")
+        return redirect(url_for("admin.anos_letivos_lista"))
+
+    return render_template("admin/ano_letivo_form.html", ano=None, modo="novo")
+
+
+@admin_bp.route("/anos-letivos/<int:ano_letivo_id>/editar", methods=["GET", "POST"])
+def anos_letivos_editar(ano_letivo_id):
+    """Edição de um ano letivo existente."""
+    ano = obter_ano_letivo(ano_letivo_id)
+    if not ano:
+        flash("Ano letivo não encontrado.", "erro")
+        return redirect(url_for("admin.anos_letivos_lista"))
+
+    if request.method == "POST":
+        nome = (request.form.get("nome") or "").strip()
+        data_inicio = (request.form.get("data_inicio") or "").strip() or None
+        data_fim = (request.form.get("data_fim") or "").strip() or None
+        ativo = request.form.get("ativo") == "on"
+
+        if not nome:
+            flash("O nome do ano letivo é obrigatório.", "erro")
+            return render_template("admin/ano_letivo_form.html", ano={**ano, **request.form}, modo="editar")
+
+        if existe_nome_ano_letivo(nome, ignorar_id=ano_letivo_id):
+            flash(f"Já existe um ano letivo chamado \"{nome}\".", "erro")
+            return render_template("admin/ano_letivo_form.html", ano={**ano, **request.form}, modo="editar")
+
+        atualizar_ano_letivo(ano_letivo_id, nome=nome, data_inicio=data_inicio, data_fim=data_fim, ativo=ativo)
+        registrar_log(tipo="alteracao", mensagem=f"Ano letivo \"{nome}\" (id={ano_letivo_id}) atualizado.")
+        flash(f"Ano letivo \"{nome}\" atualizado com sucesso.", "sucesso")
+        return redirect(url_for("admin.anos_letivos_lista"))
+
+    return render_template("admin/ano_letivo_form.html", ano=ano, modo="editar")
+
+
+@admin_bp.route("/anos-letivos/<int:ano_letivo_id>/excluir", methods=["POST"])
+def anos_letivos_excluir(ano_letivo_id):
+    """Exclui um ano letivo (os alunos vinculados apenas ficam sem ano letivo definido)."""
+    ano = obter_ano_letivo(ano_letivo_id)
+    if ano:
+        excluir_ano_letivo(ano_letivo_id)
+        registrar_log(tipo="alteracao", mensagem=f"Ano letivo \"{ano['nome']}\" (id={ano_letivo_id}) excluído.")
+        flash(f"Ano letivo \"{ano['nome']}\" excluído.", "sucesso")
+    else:
+        flash("Ano letivo não encontrado.", "erro")
+    return redirect(url_for("admin.anos_letivos_lista"))
+
+
+@admin_bp.route("/anos-letivos/<int:ano_letivo_id>/definir-atual", methods=["POST"])
+def anos_letivos_definir_atual(ano_letivo_id):
+    """Define qual ano letivo é o "atual" — usado como padrão ao cadastrar novos alunos."""
+    ano = obter_ano_letivo(ano_letivo_id)
+    if ano:
+        definir_ano_letivo_atual(ano_letivo_id)
+        registrar_log(tipo="alteracao", mensagem=f"Ano letivo \"{ano['nome']}\" definido como atual.")
+        flash(f"Ano letivo \"{ano['nome']}\" definido como o ano letivo atual.", "sucesso")
+    else:
+        flash("Ano letivo não encontrado.", "erro")
+    return redirect(url_for("admin.anos_letivos_lista"))
 
 
 # ---------------------------------------------------------------------------

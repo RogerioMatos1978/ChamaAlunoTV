@@ -6,8 +6,17 @@
 {% block admin_conteudo %}
 
 <div class="cartao formulario-cartao">
-    <form method="POST" class="formulario">
+    <form method="POST" enctype="multipart/form-data" class="formulario">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="bloco-foto">
+            <img class="preview-foto" id="preview-foto-sala"
+                 src="{{ resolver_foto_sala(sala.foto) if (sala and sala.foto) else url_for('static', filename='img/icons/default_avatar.png') }}"
+                 alt="Foto da sala">
+            <label for="foto" class="btn btn-secundario btn-pequeno">Escolher foto da sala</label>
+            <input type="file" id="foto" name="foto" accept=".png,.jpg,.jpeg,.webp" style="display:none"
+                   onchange="document.getElementById('preview-foto-sala').src = URL.createObjectURL(this.files[0])">
+        </div>
 
         <label for="nome">Nome da sala *</label>
         <input type="text" id="nome" name="nome" required maxlength="80"

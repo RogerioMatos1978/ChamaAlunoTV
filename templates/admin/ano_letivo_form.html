@@ -1,0 +1,41 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}{{ 'Editar ano letivo' if modo == 'editar' else 'Novo ano letivo' }}{% endblock %}
+{% block admin_cabecalho %}{{ 'Editar ano letivo' if modo == 'editar' else 'Novo ano letivo' }}{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="cartao formulario-cartao">
+    <form method="POST" class="formulario">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <label for="nome">Nome do ano letivo *</label>
+        <input type="text" id="nome" name="nome" required maxlength="20"
+               value="{{ ano.nome if ano else '' }}" placeholder="Ex.: 2026">
+
+        <div class="linha-formulario">
+            <div>
+                <label for="data_inicio">Data de início</label>
+                <input type="date" id="data_inicio" name="data_inicio"
+                       value="{{ ano.data_inicio if ano and ano.data_inicio else '' }}">
+            </div>
+            <div>
+                <label for="data_fim">Data de fim</label>
+                <input type="date" id="data_fim" name="data_fim"
+                       value="{{ ano.data_fim if ano and ano.data_fim else '' }}">
+            </div>
+        </div>
+
+        <label class="opcao-checkbox">
+            <input type="checkbox" name="ativo" {{ 'checked' if (ano is none) or (ano and ano.ativo) else '' }}>
+            Disponível para seleção nos cadastros de aluno
+        </label>
+
+        <div class="acoes-formulario">
+            <a href="{{ url_for('admin.anos_letivos_lista') }}" class="btn btn-secundario">Cancelar</a>
+            <button type="submit" class="btn btn-primario">Salvar</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

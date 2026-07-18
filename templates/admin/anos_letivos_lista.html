@@ -1,0 +1,73 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}Anos letivos{% endblock %}
+{% block admin_cabecalho %}Anos letivos{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="barra-acoes">
+    <a href="{{ url_for('admin.anos_letivos_novo') }}" class="btn btn-primario">+ Novo ano letivo</a>
+</div>
+
+<p class="texto-suave" style="margin: 0.75rem 0 1rem;">
+    Cada aluno fica vinculado a um ano letivo. O ano letivo marcado como
+    <strong>"Atual"</strong> é usado automaticamente ao cadastrar um novo aluno.
+</p>
+
+{% if anos %}
+<div class="cartao tabela-responsiva">
+    <table class="tabela">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Início</th>
+                <th>Fim</th>
+                <th>Status</th>
+                <th>Atual</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ano in anos %}
+            <tr>
+                <td>{{ ano.nome }}</td>
+                <td>{{ ano.data_inicio or '—' }}</td>
+                <td>{{ ano.data_fim or '—' }}</td>
+                <td>
+                    {% if ano.ativo %}
+                        <span class="selo selo-sucesso">Ativo</span>
+                    {% else %}
+                        <span class="selo selo-inativo">Inativo</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if ano.id == atual_id %}
+                        <span class="selo selo-sucesso">★ Atual</span>
+                    {% else %}
+                        <form method="POST" action="{{ url_for('admin.anos_letivos_definir_atual', ano_letivo_id=ano.id) }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-pequeno">Definir como atual</button>
+                        </form>
+                    {% endif %}
+                </td>
+                <td class="celula-acoes">
+                    <a href="{{ url_for('admin.anos_letivos_editar', ano_letivo_id=ano.id) }}" class="btn btn-pequeno">Editar</a>
+                    <form method="POST" action="{{ url_for('admin.anos_letivos_excluir', ano_letivo_id=ano.id) }}"
+                          onsubmit="return confirm('Excluir o ano letivo \'{{ ano.nome }}\'? Os alunos vinculados não serão apagados.');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-pequeno btn-perigo">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="cartao estado-vazio">
+    <p>Nenhum ano letivo cadastrado ainda.</p>
+    <a href="{{ url_for('admin.anos_letivos_novo') }}" class="btn btn-primario">Cadastrar o primeiro ano letivo</a>
+</div>
+{% endif %}
+
+{% endblock %}

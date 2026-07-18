@@ -37,6 +37,10 @@
                class="{{ 'ativo' if request.endpoint and request.endpoint.startswith('admin.alunos') else '' }}">
                 <span class="icone">🎓</span> Alunos
             </a>
+            <a href="{{ url_for('admin.anos_letivos_lista') }}"
+               class="{{ 'ativo' if request.endpoint and request.endpoint.startswith('admin.anos_letivos') else '' }}">
+                <span class="icone">🗓</span> Anos letivos
+            </a>
             <a href="{{ url_for('admin.historico_lista') }}"
                class="{{ 'ativo' if request.endpoint and request.endpoint.startswith('admin.historico') else '' }}">
                 <span class="icone">🕘</span> Histórico

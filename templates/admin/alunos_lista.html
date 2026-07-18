@@ -32,7 +32,10 @@
                 <th>Turma</th>
                 <th>Sala</th>
                 <th>Código</th>
+                <th>Ano letivo</th>
                 <th>Status</th>
+                <th>Situação</th>
+                <th>Presença hoje</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -51,11 +54,26 @@
                     {% else %}—{% endif %}
                 </td>
                 <td>{{ aluno.codigo or '—' }}</td>
+                <td>{{ aluno.ano_letivo_nome or '—' }}</td>
                 <td>
                     {% if aluno.status == 'aguardando' %}
                         <span class="selo selo-sucesso">Aguardando</span>
                     {% else %}
                         <span class="selo selo-inativo">Chamado</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if aluno.ativo %}
+                        <span class="selo selo-sucesso">Ativo</span>
+                    {% else %}
+                        <span class="selo selo-inativo">Inativo</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if aluno.status_presenca_hoje == 'faltante' %}
+                        <span class="selo selo-alerta">Faltante</span>
+                    {% else %}
+                        <span class="selo selo-sucesso">Presente</span>
                     {% endif %}
                 </td>
                 <td class="celula-acoes">

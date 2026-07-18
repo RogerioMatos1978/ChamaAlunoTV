@@ -22,6 +22,7 @@
             {% if perfil_logado in ('administrador', 'supervisor') %}
             <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secundario">Painel administrativo</a>
             {% endif %}
+            <a href="{{ url_for('kiosk.gestao_alunos') }}" class="btn btn-secundario">🎓 Gerenciar alunos</a>
             <a href="{{ url_for('presenca.lista') }}" target="_blank" rel="noopener" class="btn btn-secundario">📋 Presença</a>
             <a href="{{ url_for('screen.tela') }}" target="_blank" rel="noopener" class="btn btn-secundario">📺 Painel de TV</a>
             <button id="btn-tema" class="botao-tema" title="Alternar tema claro/escuro">🌓</button>

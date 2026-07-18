@@ -39,6 +39,7 @@ sistema_chamada_alunos/
 │   ├── img/logos/                # Logo da instituição
 │   ├── img/icons/                # Ícones e avatar padrão
 │   ├── fotos/                    # Fotos dos alunos (só o nome do arquivo é salvo no banco)
+│   ├── fotos_salas/               # Fotos das salas (Módulo 12)
 │   └── uploads/                  # Uploads temporários
 ├── backups/                    # Backups automáticos e manuais do banco
 └── logs/                       # Logs de erro/aplicação (produção)
@@ -89,6 +90,9 @@ exemplo `http://192.168.0.10:5000`. Veja mais em
       tema claro/escuro, som de aviso, múltiplos guichês e scripts de implantação
 - [x] **Módulo 11** — Repetir chamado (mantendo nome/foto) e aviso de
       atualização automática entre todas as telas
+- [x] **Módulo 12** — Ano letivo, aluno ativo/inativo, presença diária e
+      permissões refinadas (Admin x usuário padrão), foto e CSV de salas,
+      sidebar de últimos chamados no Screen
 
 ## Funcionalidades
 
@@ -106,7 +110,18 @@ sem perder o que está sendo feito · Controle de prioridade ·
 Múltiplos guichês · API REST completa · Página de usuários e permissões ·
 Página de configurações (nome, logo, cores, narração) · Página de
 auditoria · QR Code por sala · Tema claro/escuro · Backup automático e
-manual, com restauração · Proteção CSRF e sanitização de entradas.
+manual, com restauração · Proteção CSRF e sanitização de entradas ·
+Alunos são cadastros fixos com situação ativo/inativo (para transferência
+para outra escola) · Presença/falta diária do aluno, vinculada ao ano
+letivo · Cadastro e seleção de anos letivos, com um "ano letivo atual"
+usado por padrão nos novos cadastros · Fila do Kiosk respeita
+automaticamente quem está inativo ou foi marcado como faltante no dia ·
+Importação via CSV de alunos e de salas restrita ao Admin/Supervisor ·
+Usuário padrão (operador) gerencia no dia a dia, sem acesso ao cadastro
+completo: situação ativo/inativo do aluno, presença/falta do dia, foto do
+aluno e foto da sala (telas em "Kiosk → Gerenciar alunos/salas") · Sidebar
+com os últimos 3 alunos chamados na tela Screen (TV), atualizada em tempo
+real.
 
 ## API REST
 

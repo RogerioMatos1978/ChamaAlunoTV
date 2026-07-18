@@ -24,7 +24,10 @@ from flask_wtf import CSRFProtect
 
 from config import get_config
 from database.models import init_db
-from database.services import seed_admin_padrao, resolver_caminho_foto, get_configuracao, criar_backup
+from database.services import (
+    seed_admin_padrao, resolver_caminho_foto, resolver_caminho_foto_sala,
+    get_configuracao, criar_backup,
+)
 from database.socket_events import register_socket_events
 
 # Instância global do SocketIO. Fica fora de create_app() porque alguns
@@ -74,6 +77,8 @@ def create_app():
             # Retorna a URL correta da foto do aluno, ou da imagem padrão
             # caso o arquivo não exista.
             "foto_url": lambda foto: url_for("static", filename=resolver_caminho_foto(foto)),
+            # Mesma ideia, mas para a foto da sala (Módulo 12).
+            "resolver_foto_sala": lambda foto: url_for("static", filename=resolver_caminho_foto_sala(foto)),
         }
 
     # --- Rota inicial ---

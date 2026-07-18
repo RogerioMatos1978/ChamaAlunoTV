@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block titulo %}Gerenciar salas — {{ nome_instituicao }}{% endblock %}
+
+{% block conteudo %}
+<div class="tela-kiosk">
+    <header class="kiosk-topo">
+        <div class="kiosk-marca">
+            <img src="{{ url_for('static', filename='img/logos/logo.png') }}"
+                 alt="{{ nome_instituicao }}" onerror="this.style.display='none'">
+            <span>{{ nome_instituicao }}</span>
+        </div>
+
+        <div class="kiosk-usuario">
+            <a href="{{ url_for('kiosk.selecionar_sala') }}" class="btn btn-secundario">↩ Voltar ao Kiosk</a>
+            <a href="{{ url_for('kiosk.gestao_alunos') }}" class="btn btn-secundario">🎓 Gerenciar alunos</a>
+            <button id="btn-tema" class="botao-tema" title="Alternar tema claro/escuro">🌓</button>
+            <span>{{ usuario_logado }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-pequeno">Sair</a>
+        </div>
+    </header>
+
+    <main class="kiosk-conteudo">
+        <h1 class="kiosk-titulo">Gerenciar salas</h1>
+        <p class="texto-suave" style="margin-bottom: 1rem;">
+            Aqui o usuário padrão pode cadastrar/trocar apenas a foto de cada sala. O
+            cadastro completo (nome, cor, importação via CSV) fica no Painel administrativo.
+        </p>
+
+        {% if salas %}
+        <div class="grade-salas">
+            {% for sala in salas %}
+            <div class="cartao-sala" style="border-top-color: {{ sala.cor }}; cursor: default;">
+                <img class="preview-foto" src="{{ resolver_foto_sala(sala.foto) }}" alt="{{ sala.nome }}"
+                     style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 0.5rem;">
+                <span class="cartao-sala-nome">{{ sala.nome }}</span>
+                {% if sala.descricao %}<span class="cartao-sala-desc">{{ sala.descricao }}</span>{% endif %}
+                <button type="button" class="btn btn-pequeno btn-foto-sala" style="margin-top: 0.75rem;"
+                        data-sala-id="{{ sala.id }}" data-sala-nome="{{ sala.nome }}">Trocar foto</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="cartao estado-vazio">
+            <p>Nenhuma sala cadastrada ainda.</p>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Modal simples de upload de foto -->
+    <div class="qrcode-modal oculto" id="modal-foto-sala">
+        <div class="qrcode-modal-conteudo">
+            <h3 id="titulo-foto-sala">Trocar foto</h3>
+            <form id="form-foto-sala" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="file" name="foto" accept=".png,.jpg,.jpeg,.webp" required>
+                <div class="acoes-formulario">
+                    <button type="button" class="btn btn-secundario" id="btn-fechar-foto-sala">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        const modal = document.getElementById("modal-foto-sala");
+        const form = document.getElementById("form-foto-sala");
+        const titulo = document.getElementById("titulo-foto-sala");
+
+        document.querySelectorAll(".btn-foto-sala").forEach(function (botao) {
+            botao.addEventListener("click", function () {
+                form.action = "/kiosk/gestao/salas/" + botao.dataset.salaId + "/foto";
+                titulo.textContent = "Trocar foto — " + botao.dataset.salaNome;
+                modal.classList.remove("oculto");
+            });
+        });
+
+        document.getElementById("btn-fechar-foto-sala").addEventListener("click", function () {
+            modal.classList.add("oculto");
+        });
+    })();
+</script>
+{% endblock %}

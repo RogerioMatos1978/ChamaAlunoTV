@@ -5,8 +5,9 @@
 
 {% block admin_conteudo %}
 
-<div class="barra-acoes">
+<div class="barra-acoes barra-acoes-espacada">
     <a href="{{ url_for('admin.salas_nova') }}" class="btn btn-primario">+ Nova sala</a>
+    <a href="{{ url_for('admin.salas_importar') }}" class="btn btn-secundario">Importar CSV</a>
 </div>
 
 {% if salas %}
@@ -14,6 +15,7 @@
     <table class="tabela">
         <thead>
             <tr>
+                <th>Foto</th>
                 <th>Ordem</th>
                 <th>Cor</th>
                 <th>Nome</th>
@@ -26,6 +28,7 @@
         <tbody>
             {% for sala in salas %}
             <tr>
+                <td><img class="miniatura-aluno" src="{{ resolver_foto_sala(sala.foto) }}" alt="{{ sala.nome }}"></td>
                 <td>{{ sala.ordem }}</td>
                 <td><span class="pastilha-cor" style="background: {{ sala.cor }};"></span></td>
                 <td>{{ sala.nome }}</td>

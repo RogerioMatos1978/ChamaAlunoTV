@@ -341,6 +341,9 @@ def excluir_sala(sala_id: int):
     `sala_id` deles simplesmente fica nulo (ON DELETE SET NULL no schema),
     evitando perda acidental de dados de alunos.
     """
+    sala = obter_sala(sala_id)
+    if sala and sala.get("foto"):
+        excluir_foto_sala(sala["foto"])
     with db_session() as conn:
         conn.execute("DELETE FROM salas WHERE id = ?", (sala_id,))
 
@@ -355,6 +358,163 @@ def existe_nome_sala(nome: str, ignorar_id: int = None) -> bool:
         else:
             row = conn.execute("SELECT 1 FROM salas WHERE nome = ?", (nome,)).fetchone()
         return row is not None
+
+
+# ---------------------------------------------------------------------------
+# Anos letivos (Módulo 12)
+# ---------------------------------------------------------------------------
+def listar_anos_letivos():
+    """Lista todos os anos letivos cadastrados, mais recentes primeiro."""
+    with db_session() as conn:
+        cursor = conn.execute("SELECT * FROM anos_letivos ORDER BY nome DESC")
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def obter_ano_letivo(ano_letivo_id: int):
+    """Busca um ano letivo pelo id. Retorna dict ou None."""
+    with db_session() as conn:
+        row = conn.execute("SELECT * FROM anos_letivos WHERE id = ?", (ano_letivo_id,)).fetchone()
+        return dict(row) if row else None
+
+
+def existe_nome_ano_letivo(nome: str, ignorar_id: int = None) -> bool:
+    """Verifica se já existe outro ano letivo com o mesmo nome."""
+    with db_session() as conn:
+        if ignorar_id:
+            row = conn.execute(
+                "SELECT 1 FROM anos_letivos WHERE nome = ? AND id != ?", (nome, ignorar_id)
+            ).fetchone()
+        else:
+            row = conn.execute("SELECT 1 FROM anos_letivos WHERE nome = ?", (nome,)).fetchone()
+        return row is not None
+
+
+def criar_ano_letivo(nome: str, data_inicio: str = None, data_fim: str = None, ativo: bool = True) -> int:
+    """Cria um novo ano letivo. Retorna o id gerado."""
+    with db_session() as conn:
+        cursor = conn.execute(
+            "INSERT INTO anos_letivos (nome, data_inicio, data_fim, ativo) VALUES (?, ?, ?, ?)",
+            (nome, data_inicio, data_fim, int(ativo)),
+        )
+        return cursor.lastrowid
+
+
+def atualizar_ano_letivo(ano_letivo_id: int, nome: str, data_inicio: str = None,
+                          data_fim: str = None, ativo: bool = True):
+    """Atualiza os dados de um ano letivo existente."""
+    with db_session() as conn:
+        conn.execute(
+            "UPDATE anos_letivos SET nome = ?, data_inicio = ?, data_fim = ?, ativo = ? WHERE id = ?",
+            (nome, data_inicio, data_fim, int(ativo), ano_letivo_id),
+        )
+
+
+def excluir_ano_letivo(ano_letivo_id: int):
+    """
+    Exclui um ano letivo. Os alunos vinculados NÃO são apagados — o campo
+    `ano_letivo_id` deles simplesmente fica nulo (ON DELETE SET NULL).
+    """
+    with db_session() as conn:
+        conn.execute("DELETE FROM anos_letivos WHERE id = ?", (ano_letivo_id,))
+        if get_configuracao("ano_letivo_atual_id") == str(ano_letivo_id):
+            conn.execute("DELETE FROM configuracoes WHERE chave = 'ano_letivo_atual_id'")
+
+
+def obter_ano_letivo_atual_id():
+    """
+    Retorna o id do "ano letivo atual" (definido em Configurações →
+    Anos letivos), usado como padrão ao cadastrar um novo aluno sem
+    indicar explicitamente o ano letivo. Retorna None se nenhum ano
+    letivo foi definido como atual ainda.
+    """
+    valor = get_configuracao("ano_letivo_atual_id")
+    return int(valor) if valor else None
+
+
+def definir_ano_letivo_atual(ano_letivo_id: int):
+    """Define qual ano letivo é o "atual" (usado como padrão nos cadastros)."""
+    set_configuracao("ano_letivo_atual_id", ano_letivo_id, descricao="Ano letivo atual (padrão para novos alunos)")
+
+
+# ---------------------------------------------------------------------------
+# Presença diária dos alunos (Módulo 12)
+# ---------------------------------------------------------------------------
+def marcar_presenca(aluno_id: int, status: str, data: str = None,
+                     ano_letivo_id: int = None, registrado_por: int = None):
+    """
+    Marca a presença/falta de um aluno em um dia específico (UPSERT por
+    `(aluno_id, data)`). `data` no formato 'AAAA-MM-DD'; usa a data de
+    hoje (fuso local do servidor) quando não informada.
+    """
+    if status not in ("presente", "faltante"):
+        raise ValueError("Status de presença inválido. Use 'presente' ou 'faltante'.")
+
+    with db_session() as conn:
+        if data:
+            conn.execute(
+                """
+                INSERT INTO presencas (aluno_id, ano_letivo_id, data, status, registrado_por)
+                VALUES (?, ?, ?, ?, ?)
+                ON CONFLICT(aluno_id, data) DO UPDATE SET
+                    status = excluded.status,
+                    ano_letivo_id = excluded.ano_letivo_id,
+                    registrado_por = excluded.registrado_por,
+                    atualizado_em = datetime('now', 'localtime')
+                """,
+                (aluno_id, ano_letivo_id, data, status, registrado_por),
+            )
+        else:
+            conn.execute(
+                """
+                INSERT INTO presencas (aluno_id, ano_letivo_id, data, status, registrado_por)
+                VALUES (?, ?, date('now', 'localtime'), ?, ?)
+                ON CONFLICT(aluno_id, data) DO UPDATE SET
+                    status = excluded.status,
+                    ano_letivo_id = excluded.ano_letivo_id,
+                    registrado_por = excluded.registrado_por,
+                    atualizado_em = datetime('now', 'localtime')
+                """,
+                (aluno_id, ano_letivo_id, status, registrado_por),
+            )
+
+
+def obter_presenca_dia(aluno_id: int, data: str = None) -> str:
+    """Retorna 'presente' ou 'faltante' de um aluno em um dia (padrão: presente, se não houver registro)."""
+    with db_session() as conn:
+        if data:
+            row = conn.execute(
+                "SELECT status FROM presencas WHERE aluno_id = ? AND data = ?", (aluno_id, data)
+            ).fetchone()
+        else:
+            row = conn.execute(
+                "SELECT status FROM presencas WHERE aluno_id = ? AND data = date('now', 'localtime')",
+                (aluno_id,),
+            ).fetchone()
+        return row["status"] if row else "presente"
+
+
+def listar_presencas_dia(data: str = None, sala_id: int = None) -> dict:
+    """
+    Retorna um dict {aluno_id: status} com as marcações explícitas de um
+    dia — usado pela tela de gestão de presença para saber quem já foi
+    marcado como faltante hoje.
+    """
+    with db_session() as conn:
+        condicoes = ["p.data = COALESCE(?, date('now', 'localtime'))"]
+        parametros = [data]
+        if sala_id:
+            condicoes.append("a.sala_id = ?")
+            parametros.append(sala_id)
+        cursor = conn.execute(
+            f"""
+            SELECT p.aluno_id, p.status
+            FROM presencas p
+            JOIN alunos a ON a.id = p.aluno_id
+            WHERE {' AND '.join(condicoes)}
+            """,
+            parametros,
+        )
+        return {row["aluno_id"]: row["status"] for row in cursor.fetchall()}
 
 
 # ---------------------------------------------------------------------------
@@ -430,7 +590,8 @@ def obter_estatisticas_dashboard():
 # Alunos
 # ---------------------------------------------------------------------------
 def listar_alunos(sala_id: int = None, status: str = None, busca: str = None,
-                   ordenar_por: str = "nome"):
+                   ordenar_por: str = "nome", ativo: int = None,
+                   ano_letivo_id: int = None, excluir_faltantes_hoje: bool = False):
     """
     Lista alunos com filtros opcionais. Usada pela tela administrativa de
     alunos (Módulo 4) e reaproveitada pelas telas de Kiosk e Presença
@@ -440,6 +601,15 @@ def listar_alunos(sala_id: int = None, status: str = None, busca: str = None,
         - "nome" (padrão): ordem alfabética — ideal para telas de busca/admin.
         - "fila": prioridade e depois ordem de chegada (FIFO) — ideal para
           o Kiosk, onde a ordem de atendimento importa.
+
+    `ativo` (Módulo 12): filtra por alunos ativos (1) ou inativos (0);
+    None (padrão) não filtra — usado nas telas administrativas, que
+    precisam listar os dois grupos.
+
+    `excluir_faltantes_hoje` (Módulo 12): quando True, remove da lista
+    quem foi explicitamente marcado como "faltante" na data de hoje —
+    usado pela fila do Kiosk, para não chamar quem já foi dado como
+    ausente no dia.
     """
     condicoes = []
     parametros = []
@@ -454,6 +624,14 @@ def listar_alunos(sala_id: int = None, status: str = None, busca: str = None,
         condicoes.append("(a.nome LIKE ? OR a.turma LIKE ? OR a.codigo LIKE ?)")
         termo = f"%{busca}%"
         parametros.extend([termo, termo, termo])
+    if ativo is not None:
+        condicoes.append("a.ativo = ?")
+        parametros.append(int(ativo))
+    if ano_letivo_id:
+        condicoes.append("a.ano_letivo_id = ?")
+        parametros.append(ano_letivo_id)
+    if excluir_faltantes_hoje:
+        condicoes.append("COALESCE(p_hoje.status, 'presente') != 'faltante'")
 
     where = f"WHERE {' AND '.join(condicoes)}" if condicoes else ""
     ordenacao = (
@@ -465,9 +643,14 @@ def listar_alunos(sala_id: int = None, status: str = None, busca: str = None,
     with db_session() as conn:
         cursor = conn.execute(
             f"""
-            SELECT a.*, s.nome AS sala_nome, s.cor AS sala_cor
+            SELECT a.*, s.nome AS sala_nome, s.cor AS sala_cor,
+                   al.nome AS ano_letivo_nome,
+                   COALESCE(p_hoje.status, 'presente') AS status_presenca_hoje
             FROM alunos a
             LEFT JOIN salas s ON s.id = a.sala_id
+            LEFT JOIN anos_letivos al ON al.id = a.ano_letivo_id
+            LEFT JOIN presencas p_hoje
+                   ON p_hoje.aluno_id = a.id AND p_hoje.data = date('now', 'localtime')
             {where}
             ORDER BY {ordenacao}
             """,
@@ -481,9 +664,13 @@ def obter_aluno(aluno_id: int):
     with db_session() as conn:
         row = conn.execute(
             """
-            SELECT a.*, s.nome AS sala_nome, s.cor AS sala_cor
+            SELECT a.*, s.nome AS sala_nome, s.cor AS sala_cor, al.nome AS ano_letivo_nome,
+                   COALESCE(p_hoje.status, 'presente') AS status_presenca_hoje
             FROM alunos a
             LEFT JOIN salas s ON s.id = a.sala_id
+            LEFT JOIN anos_letivos al ON al.id = a.ano_letivo_id
+            LEFT JOIN presencas p_hoje
+                   ON p_hoje.aluno_id = a.id AND p_hoje.data = date('now', 'localtime')
             WHERE a.id = ?
             """,
             (aluno_id,),
@@ -493,32 +680,46 @@ def obter_aluno(aluno_id: int):
 
 def criar_aluno(nome: str, turma: str = None, sala_id: int = None, foto: str = None,
                  codigo: str = None, cpf: str = None, observacoes: str = None,
-                 prioridade: int = 0) -> int:
-    """Cria um novo aluno com status inicial 'aguardando'. Retorna o id gerado."""
+                 prioridade: int = 0, ativo: bool = True, ano_letivo_id: int = None) -> int:
+    """
+    Cria um novo aluno com status inicial 'aguardando'. Retorna o id gerado.
+
+    O aluno é um registro fixo/permanente (Módulo 12): não é excluído ao
+    trocar de ano letivo, apenas fica vinculado ao ano letivo informado
+    (ou ao ano letivo atual, se nenhum for indicado e existir um definido).
+    """
+    if ano_letivo_id is None:
+        ano_letivo_id = obter_ano_letivo_atual_id()
+
     with db_session() as conn:
         cursor = conn.execute(
             """
-            INSERT INTO alunos (nome, turma, sala_id, foto, codigo, cpf, observacoes, prioridade, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'aguardando')
+            INSERT INTO alunos (nome, turma, sala_id, foto, codigo, cpf, observacoes,
+                                 prioridade, status, ativo, ano_letivo_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'aguardando', ?, ?)
             """,
-            (nome, turma, sala_id, foto, codigo, cpf, observacoes, int(prioridade)),
+            (nome, turma, sala_id, foto, codigo, cpf, observacoes, int(prioridade),
+             int(ativo), ano_letivo_id),
         )
         return cursor.lastrowid
 
 
 def atualizar_aluno(aluno_id: int, nome: str, turma: str = None, sala_id: int = None,
                      foto: str = None, codigo: str = None, cpf: str = None,
-                     observacoes: str = None, prioridade: int = 0):
+                     observacoes: str = None, prioridade: int = 0, ativo: bool = True,
+                     ano_letivo_id: int = None):
     """Atualiza os dados cadastrais de um aluno existente."""
     with db_session() as conn:
         conn.execute(
             """
             UPDATE alunos
                SET nome = ?, turma = ?, sala_id = ?, foto = ?, codigo = ?, cpf = ?,
-                   observacoes = ?, prioridade = ?, atualizado_em = datetime('now', 'localtime')
+                   observacoes = ?, prioridade = ?, ativo = ?, ano_letivo_id = ?,
+                   atualizado_em = datetime('now', 'localtime')
              WHERE id = ?
             """,
-            (nome, turma, sala_id, foto, codigo, cpf, observacoes, int(prioridade), aluno_id),
+            (nome, turma, sala_id, foto, codigo, cpf, observacoes, int(prioridade),
+             int(ativo), ano_letivo_id, aluno_id),
         )
 
 
@@ -528,6 +729,20 @@ def atualizar_foto_aluno(aluno_id: int, foto: str):
         conn.execute(
             "UPDATE alunos SET foto = ?, atualizado_em = datetime('now', 'localtime') WHERE id = ?",
             (foto, aluno_id),
+        )
+
+
+def atualizar_status_ativo_aluno(aluno_id: int, ativo: bool):
+    """
+    Define se um aluno está ativo ou inativo (Módulo 12) — usado quando um
+    aluno é transferido para outra escola. O cadastro do aluno é
+    preservado (histórico de chamadas, fotos, etc.), apenas deixa de
+    aparecer na fila de chamada do Kiosk enquanto estiver inativo.
+    """
+    with db_session() as conn:
+        conn.execute(
+            "UPDATE alunos SET ativo = ?, atualizado_em = datetime('now', 'localtime') WHERE id = ?",
+            (int(ativo), aluno_id),
         )
 
 
@@ -626,11 +841,57 @@ def importar_alunos_csv(linhas: list) -> dict:
                 existente["id"], nome=nome, turma=turma, sala_id=sala_id,
                 foto=foto or existente["foto"], codigo=existente["codigo"],
                 cpf=existente["cpf"], observacoes=existente["observacoes"],
-                prioridade=existente["prioridade"],
+                prioridade=existente["prioridade"], ativo=bool(existente["ativo"]),
+                ano_letivo_id=existente["ano_letivo_id"],
             )
             resumo["atualizados"] += 1
         else:
             criar_aluno(nome=nome, turma=turma, sala_id=sala_id, foto=foto)
+            resumo["criados"] += 1
+
+    return resumo
+
+
+def importar_salas_csv(linhas: list) -> dict:
+    """
+    Importa salas a partir de uma lista de dicionários já normalizados
+    (chaves: 'nome', 'descricao', 'cor'), no formato:
+
+        nome;descricao;cor
+
+    Salas já existentes (mesmo nome) são ATUALIZADAS, não duplicadas.
+    Restrito ao Admin na camada de rotas (blueprint `admin_bp`).
+
+    Retorna um resumo: {criados, atualizados, ignorados}.
+    """
+    resumo = {"criados": 0, "atualizados": 0, "ignorados": 0}
+
+    for linha in linhas:
+        nome = (linha.get("nome") or "").strip()
+        descricao = (linha.get("descricao") or "").strip() or None
+        cor = (linha.get("cor") or "").strip() or "#164194"
+
+        if not nome:
+            resumo["ignorados"] += 1
+            continue
+
+        with db_session() as conn:
+            existente = conn.execute(
+                "SELECT * FROM salas WHERE TRIM(LOWER(nome)) = TRIM(LOWER(?))", (nome,)
+            ).fetchone()
+
+        if existente:
+            atualizar_sala(
+                existente["id"], nome=nome, descricao=descricao or existente["descricao"],
+                cor=cor, ordem=existente["ordem"], ativa=bool(existente["ativa"]),
+                observacoes=existente["observacoes"],
+            )
+            resumo["atualizados"] += 1
+        else:
+            maior_ordem = None
+            with db_session() as conn:
+                maior_ordem = conn.execute("SELECT COALESCE(MAX(ordem), -1) AS m FROM salas").fetchone()["m"]
+            criar_sala(nome=nome, descricao=descricao, cor=cor, ordem=maior_ordem + 1)
             resumo["criados"] += 1
 
     return resumo
@@ -700,6 +961,60 @@ def resolver_caminho_foto(nome_arquivo: str) -> str:
     """
     if nome_arquivo and (Config.FOTOS_DIR / nome_arquivo).exists():
         return f"fotos/{nome_arquivo}"
+    return Config.FOTO_PADRAO
+
+
+# ---------------------------------------------------------------------------
+# Fotos das salas (Módulo 12) — o usuário padrão (operador) pode cadastrar
+# ---------------------------------------------------------------------------
+def salvar_foto_sala(arquivo_upload, sala_id: int) -> str:
+    """
+    Mesmo esquema de `salvar_foto_aluno`, mas salvando em `Config.SALAS_DIR`
+    com o padrão de nome "sala_{id}.jpg". Retorna o nome do arquivo salvo.
+    """
+    extensao_original = secure_filename(arquivo_upload.filename).rsplit(".", 1)[-1].lower()
+    if extensao_original not in Config.EXTENSOES_PERMITIDAS:
+        raise ValueError("Formato de imagem não suportado.")
+
+    for extensao in Config.EXTENSOES_PERMITIDAS:
+        caminho_antigo = Config.SALAS_DIR / f"sala_{sala_id}.{extensao}"
+        if caminho_antigo.exists():
+            caminho_antigo.unlink()
+
+    nome_arquivo = f"sala_{sala_id}.jpg"
+    caminho_destino = Config.SALAS_DIR / nome_arquivo
+
+    imagem = Image.open(arquivo_upload.stream)
+    imagem = imagem.convert("RGB")
+    imagem.thumbnail(Config.FOTO_TAMANHO_MAX)
+    imagem.save(caminho_destino, "JPEG", quality=Config.FOTO_QUALIDADE, optimize=True)
+
+    atualizar_foto_sala(sala_id, nome_arquivo)
+    return nome_arquivo
+
+
+def atualizar_foto_sala(sala_id: int, foto: str):
+    """Atualiza apenas o nome do arquivo de foto de uma sala."""
+    with db_session() as conn:
+        conn.execute("UPDATE salas SET foto = ? WHERE id = ?", (foto, sala_id))
+
+
+def excluir_foto_sala(nome_arquivo: str):
+    """Remove o arquivo de foto de uma sala do disco, se existir."""
+    if not nome_arquivo:
+        return
+    caminho = Config.SALAS_DIR / nome_arquivo
+    if caminho.exists():
+        try:
+            caminho.unlink()
+        except OSError:
+            pass
+
+
+def resolver_caminho_foto_sala(nome_arquivo: str) -> str:
+    """Resolve o caminho (relativo a /static) da foto de uma sala, ou a imagem padrão."""
+    if nome_arquivo and (Config.SALAS_DIR / nome_arquivo).exists():
+        return f"fotos_salas/{nome_arquivo}"
     return Config.FOTO_PADRAO
 
 

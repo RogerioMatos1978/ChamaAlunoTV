@@ -58,7 +58,17 @@ def db_session():
 # ---------------------------------------------------------------------------
 # Esquema do banco de dados
 # ---------------------------------------------------------------------------
-SCHEMA_SQL = """
+# Dividido em duas partes (TABLES_SQL / INDEXES_SQL) de propósito: os
+# índices referenciam colunas (ex.: alunos.ativo) que só existem de fato
+# em bancos de dados NOVOS — em bancos já existentes, essas colunas só
+# passam a existir depois que `_migrar_colunas_novas()` roda o `ALTER
+# TABLE`. Se os índices fossem criados no mesmo script que as tabelas,
+# `CREATE INDEX ... ON alunos(ativo)` falharia em qualquer instalação
+# que já tivesse o banco criado por uma versão anterior do sistema
+# (a tabela já existe, então `CREATE TABLE IF NOT EXISTS` não faz nada,
+# e a coluna nova ainda não existe nesse ponto). Por isso `init_db()`
+# executa: TABLES_SQL -> migração de colunas -> INDEXES_SQL, nessa ordem.
+TABLES_SQL = """
 -- Unidades: suporte a múltiplas unidades/campi da mesma instituição.
 CREATE TABLE IF NOT EXISTS unidades (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,6 +93,19 @@ CREATE TABLE IF NOT EXISTS usuarios (
     criado_em       TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
+-- Anos letivos: cada aluno fica vinculado a um ano letivo (Módulo 12).
+-- Apenas um deles é o "ano letivo atual" (controlado via a tabela
+-- `configuracoes`, chave 'ano_letivo_atual_id'), usado como padrão ao
+-- cadastrar um novo aluno.
+CREATE TABLE IF NOT EXISTS anos_letivos (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome            TEXT NOT NULL UNIQUE,     -- ex.: "2026"
+    data_inicio     TEXT,
+    data_fim        TEXT,
+    ativo           INTEGER NOT NULL DEFAULT 1,  -- pode ser selecionado nos cadastros
+    criado_em       TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+);
+
 -- Salas de atendimento/chamada.
 CREATE TABLE IF NOT EXISTS salas (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -92,6 +115,7 @@ CREATE TABLE IF NOT EXISTS salas (
     ordem           INTEGER NOT NULL DEFAULT 0,
     ativa           INTEGER NOT NULL DEFAULT 1,
     observacoes     TEXT,
+    foto            TEXT,                       -- apenas o nome do arquivo (Módulo 12)
     unidade_id      INTEGER REFERENCES unidades(id) ON DELETE SET NULL,
     criado_em       TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     UNIQUE(nome, unidade_id)
@@ -110,13 +134,29 @@ CREATE TABLE IF NOT EXISTS alunos (
     prioridade      INTEGER NOT NULL DEFAULT 0, -- 0 = normal, 1 = prioridade
     status          TEXT NOT NULL DEFAULT 'aguardando'
                         CHECK (status IN ('aguardando', 'chamado')),
+    ativo           INTEGER NOT NULL DEFAULT 1, -- 0 = inativo (transferido para outra escola)
+    ano_letivo_id   INTEGER REFERENCES anos_letivos(id) ON DELETE SET NULL,
     data_cadastro   TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
     atualizado_em   TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_alunos_sala   ON alunos(sala_id);
-CREATE INDEX IF NOT EXISTS idx_alunos_status ON alunos(status);
-CREATE INDEX IF NOT EXISTS idx_alunos_codigo ON alunos(codigo);
+-- Presença diária dos alunos, vinculada ao ano letivo (Módulo 12).
+-- Não é necessário criar um registro para todo aluno todo dia: a
+-- ausência de registro em um dia é interpretada como "presente" (só é
+-- preciso marcar explicitamente quem faltou), o que evita obrigar o
+-- usuário padrão a confirmar presença de todos, todos os dias.
+CREATE TABLE IF NOT EXISTS presencas (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    aluno_id        INTEGER NOT NULL REFERENCES alunos(id) ON DELETE CASCADE,
+    ano_letivo_id   INTEGER REFERENCES anos_letivos(id) ON DELETE SET NULL,
+    data            TEXT NOT NULL,              -- 'AAAA-MM-DD'
+    status          TEXT NOT NULL DEFAULT 'presente'
+                        CHECK (status IN ('presente', 'faltante')),
+    registrado_por  INTEGER REFERENCES usuarios(id) ON DELETE SET NULL,
+    criado_em       TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    atualizado_em   TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
+    UNIQUE(aluno_id, data)
+);
 
 -- Histórico de chamadas (cada chamada gera um registro permanente,
 -- mesmo que o aluno seja excluído depois).
@@ -135,9 +175,6 @@ CREATE TABLE IF NOT EXISTS chamadas (
     ip_operador     TEXT,
     horario         TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
-
-CREATE INDEX IF NOT EXISTS idx_chamadas_horario ON chamadas(horario);
-CREATE INDEX IF NOT EXISTS idx_chamadas_aluno   ON chamadas(aluno_id);
 
 -- Configurações gerais do sistema (chave/valor), usada por narração,
 -- tema, sons, etc. Mantém o sistema flexível sem precisar alterar o schema.
@@ -158,7 +195,21 @@ CREATE TABLE IF NOT EXISTS logs_auditoria (
     ip              TEXT,
     criado_em       TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );
+"""
 
+# Índices — executados DEPOIS da migração de colunas (veja o comentário
+# acima de TABLES_SQL), já que alguns referenciam colunas que só passam
+# a existir em bancos antigos após o `ALTER TABLE`.
+INDEXES_SQL = """
+CREATE INDEX IF NOT EXISTS idx_alunos_sala   ON alunos(sala_id);
+CREATE INDEX IF NOT EXISTS idx_alunos_status ON alunos(status);
+CREATE INDEX IF NOT EXISTS idx_alunos_codigo ON alunos(codigo);
+CREATE INDEX IF NOT EXISTS idx_alunos_ativo  ON alunos(ativo);
+CREATE INDEX IF NOT EXISTS idx_alunos_ano_letivo ON alunos(ano_letivo_id);
+CREATE INDEX IF NOT EXISTS idx_presencas_data  ON presencas(data);
+CREATE INDEX IF NOT EXISTS idx_presencas_aluno ON presencas(aluno_id);
+CREATE INDEX IF NOT EXISTS idx_chamadas_horario ON chamadas(horario);
+CREATE INDEX IF NOT EXISTS idx_chamadas_aluno   ON chamadas(aluno_id);
 CREATE INDEX IF NOT EXISTS idx_logs_tipo ON logs_auditoria(tipo);
 CREATE INDEX IF NOT EXISTS idx_logs_data ON logs_auditoria(criado_em);
 """
@@ -169,7 +220,38 @@ def init_db():
     Cria todas as tabelas do sistema caso ainda não existam.
 
     Seguro para ser chamado toda vez que a aplicação inicia: `CREATE TABLE
-    IF NOT EXISTS` nunca apaga dados já existentes.
+    IF NOT EXISTS` nunca apaga dados já existentes. A ordem importa: tabelas
+    -> migração de colunas novas -> índices (veja o comentário acima de
+    `TABLES_SQL` para o motivo).
     """
     with db_session() as conn:
-        conn.executescript(SCHEMA_SQL)
+        conn.executescript(TABLES_SQL)
+    _migrar_colunas_novas()
+    with db_session() as conn:
+        conn.executescript(INDEXES_SQL)
+
+
+# ---------------------------------------------------------------------------
+# Migração segura de colunas novas (Módulo 12)
+# ---------------------------------------------------------------------------
+# `CREATE TABLE IF NOT EXISTS` não adiciona colunas a tabelas que já
+# existem em um banco de dados criado por uma versão anterior do
+# sistema. Para que instalações já em uso ganhem as novas colunas sem
+# perder nenhum dado, cada `ALTER TABLE` é tentado individualmente e
+# qualquer erro (coluna já existente, banco recém-criado que já nasceu
+# com a coluna, etc.) é silenciosamente ignorado.
+_COLUNAS_NOVAS = (
+    ("alunos", "ativo", "INTEGER NOT NULL DEFAULT 1"),
+    ("alunos", "ano_letivo_id", "INTEGER REFERENCES anos_letivos(id) ON DELETE SET NULL"),
+    ("salas", "foto", "TEXT"),
+)
+
+
+def _migrar_colunas_novas():
+    """Aplica `ALTER TABLE ... ADD COLUMN` em bancos de dados já existentes."""
+    with db_session() as conn:
+        for tabela, coluna, definicao in _COLUNAS_NOVAS:
+            try:
+                conn.execute(f"ALTER TABLE {tabela} ADD COLUMN {coluna} {definicao}")
+            except sqlite3.OperationalError:
+                pass  # coluna já existe — nada a fazer

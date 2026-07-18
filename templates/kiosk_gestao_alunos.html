@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block titulo %}Gerenciar alunos — {{ nome_instituicao }}{% endblock %}
+
+{% block conteudo %}
+<div class="tela-kiosk">
+    <header class="kiosk-topo">
+        <div class="kiosk-marca">
+            <img src="{{ url_for('static', filename='img/logos/logo.png') }}"
+                 alt="{{ nome_instituicao }}" onerror="this.style.display='none'">
+            <span>{{ nome_instituicao }}</span>
+        </div>
+
+        <div class="kiosk-usuario">
+            <a href="{{ url_for('kiosk.selecionar_sala') }}" class="btn btn-secundario">↩ Voltar ao Kiosk</a>
+            <a href="{{ url_for('kiosk.gestao_salas') }}" class="btn btn-secundario">🏫 Gerenciar salas</a>
+            <button id="btn-tema" class="botao-tema" title="Alternar tema claro/escuro">🌓</button>
+            <span>{{ usuario_logado }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-pequeno">Sair</a>
+        </div>
+    </header>
+
+    <main class="kiosk-conteudo">
+        <h1 class="kiosk-titulo">Gerenciar alunos</h1>
+        <p class="texto-suave" style="margin-bottom: 1rem;">
+            Aqui o usuário padrão pode marcar um aluno como ativo/inativo (ex.: transferido
+            para outra escola), marcar a presença/falta de hoje e trocar a foto do aluno.
+            O cadastro completo e a importação via CSV ficam no Painel administrativo.
+        </p>
+
+        <div class="barra-acoes barra-acoes-espacada">
+            <form method="GET" class="form-busca">
+                <input type="text" name="busca" placeholder="Buscar por nome, turma ou código..." value="{{ busca }}">
+                <select name="sala_id" onchange="this.form.submit()">
+                    <option value="">Todas as salas</option>
+                    {% for sala in salas %}
+                    <option value="{{ sala.id }}" {{ 'selected' if sala_id == sala.id else '' }}>{{ sala.nome }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-secundario">Buscar</button>
+            </form>
+        </div>
+
+        {% if alunos %}
+        <div class="cartao tabela-responsiva">
+            <table class="tabela">
+                <thead>
+                    <tr>
+                        <th>Foto</th>
+                        <th>Nome</th>
+                        <th>Turma</th>
+                        <th>Sala</th>
+                        <th>Situação</th>
+                        <th>Presença hoje</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for aluno in alunos %}
+                    <tr>
+                        <td>
+                            <img class="miniatura-aluno" src="{{ foto_url(aluno.foto) }}" alt="{{ aluno.nome }}">
+                        </td>
+                        <td>{{ aluno.nome }}</td>
+                        <td>{{ aluno.turma or '—' }}</td>
+                        <td>{{ aluno.sala_nome or '—' }}</td>
+                        <td>
+                            {% if aluno.ativo %}
+                                <span class="selo selo-sucesso">Ativo</span>
+                            {% else %}
+                                <span class="selo selo-inativo">Inativo</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if aluno.status_presenca_hoje == 'faltante' %}
+                                <span class="selo selo-alerta">Faltante</span>
+                            {% else %}
+                                <span class="selo selo-sucesso">Presente</span>
+                            {% endif %}
+                        </td>
+                        <td class="celula-acoes">
+                            <form method="POST" action="{{ url_for('kiosk.gestao_aluno_ativo', aluno_id=aluno.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-pequeno">
+                                    {{ 'Marcar inativo' if aluno.ativo else 'Marcar ativo' }}
+                                </button>
+                            </form>
+                            <form method="POST" action="{{ url_for('kiosk.gestao_aluno_presenca', aluno_id=aluno.id) }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <input type="hidden" name="status"
+                                       value="{{ 'presente' if aluno.status_presenca_hoje == 'faltante' else 'faltante' }}">
+                                <button type="submit" class="btn btn-pequeno">
+                                    {{ 'Marcar presente' if aluno.status_presenca_hoje == 'faltante' else 'Marcar faltante' }}
+                                </button>
+                            </form>
+                            <button type="button" class="btn btn-pequeno btn-foto-aluno"
+                                    data-aluno-id="{{ aluno.id }}" data-aluno-nome="{{ aluno.nome }}">Trocar foto</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="cartao estado-vazio">
+            <p>Nenhum aluno encontrado.</p>
+        </div>
+        {% endif %}
+    </main>
+
+    <!-- Modal simples de upload de foto -->
+    <div class="qrcode-modal oculto" id="modal-foto-aluno">
+        <div class="qrcode-modal-conteudo">
+            <h3 id="titulo-foto-aluno">Trocar foto</h3>
+            <form id="form-foto-aluno" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="file" name="foto" accept=".png,.jpg,.jpeg,.webp" required>
+                <div class="acoes-formulario">
+                    <button type="button" class="btn btn-secundario" id="btn-fechar-foto-aluno">Cancelar</button>
+                    <button type="submit" class="btn btn-primario">Enviar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    (function () {
+        const modal = document.getElementById("modal-foto-aluno");
+        const form = document.getElementById("form-foto-aluno");
+        const titulo = document.getElementById("titulo-foto-aluno");
+
+        document.querySelectorAll(".btn-foto-aluno").forEach(function (botao) {
+            botao.addEventListener("click", function () {
+                form.action = "/kiosk/gestao/alunos/" + botao.dataset.alunoId + "/foto";
+                titulo.textContent = "Trocar foto — " + botao.dataset.alunoNome;
+                modal.classList.remove("oculto");
+            });
+        });
+
+        document.getElementById("btn-fechar-foto-aluno").addEventListener("click", function () {
+            modal.classList.add("oculto");
+        });
+    })();
+</script>
+{% endblock %}

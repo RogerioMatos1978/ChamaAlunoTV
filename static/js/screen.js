@@ -28,6 +28,9 @@
     const elTurma = document.getElementById("screen-turma");
     const elSala = document.getElementById("screen-sala");
     const elRelogio = document.getElementById("screen-relogio");
+    const elSidebarLista = document.getElementById("screen-sidebar-lista");
+    const elSidebarVazio = document.getElementById("screen-sidebar-vazio");
+    const MAX_SIDEBAR = 3;
 
     const TEMPO_EXIBICAO_MS = 9000;   // quanto tempo cada chamada fica em destaque
     const filaChamadas = [];
@@ -52,7 +55,37 @@
     socket.on("aluno_chamado", function (chamada) {
         filaChamadas.push(chamada);
         processarFila();
+        adicionarNaSidebar(chamada);
     });
+
+    // -------------------------------------------------------------------
+    // Barra lateral "Últimos chamados" (Módulo 12) — mantém no máximo 3
+    // itens, sempre com o chamado mais recente no topo.
+    // -------------------------------------------------------------------
+    function adicionarNaSidebar(chamada) {
+        if (!elSidebarLista) return;
+        if (elSidebarVazio) elSidebarVazio.style.display = "none";
+
+        const item = document.createElement("div");
+        item.className = "screen-sidebar-item";
+
+        const foto = chamada.foto ? (CONFIG.fotosBase + chamada.foto) : CONFIG.avatarPadrao;
+
+        item.innerHTML =
+            '<img src="' + foto + '" alt="' + chamada.aluno_nome + '" ' +
+            'onerror="this.onerror=null;this.src=\'' + CONFIG.avatarPadrao + '\';">' +
+            '<div class="screen-sidebar-info">' +
+            '<span class="screen-sidebar-nome">' + chamada.aluno_nome + '</span>' +
+            '<span class="screen-sidebar-detalhe">' + (chamada.turma || "") + '</span>' +
+            '<span class="screen-sidebar-detalhe">' + (chamada.sala_nome || "") + '</span>' +
+            '</div>';
+
+        elSidebarLista.prepend(item);
+
+        while (elSidebarLista.children.length > MAX_SIDEBAR) {
+            elSidebarLista.removeChild(elSidebarLista.lastElementChild);
+        }
+    }
 
     function processarFila() {
         if (exibindoChamada || filaChamadas.length === 0) return;
