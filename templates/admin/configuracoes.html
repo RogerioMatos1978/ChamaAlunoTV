@@ -1,0 +1,59 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}Configurações{% endblock %}
+{% block admin_cabecalho %}Configurações do sistema{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="cartao formulario-cartao formulario-largo">
+    <form method="POST" enctype="multipart/form-data" class="formulario">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <h2 class="titulo-secao-form">Identidade visual</h2>
+
+        <label for="nome_instituicao">Nome da instituição</label>
+        <input type="text" id="nome_instituicao" name="nome_instituicao" maxlength="120"
+               value="{{ valores.nome_instituicao }}" placeholder="{{ nome_instituicao }}">
+
+        <label for="logo">Logo da instituição</label>
+        <input type="file" id="logo" name="logo" accept=".png,.jpg,.jpeg,.webp">
+        <p class="texto-suave" style="margin-top: 0.35rem;">
+            Aparece no menu, na tela de login, no Kiosk e no painel de TV.
+        </p>
+
+        <div class="linha-formulario">
+            <div>
+                <label for="cor_menu">Cor do menu</label>
+                <input type="color" id="cor_menu" name="cor_menu" value="{{ valores.cor_menu }}">
+            </div>
+            <div>
+                <label for="cor_footer">Cor do rodapé</label>
+                <input type="color" id="cor_footer" name="cor_footer" value="{{ valores.cor_footer }}">
+            </div>
+        </div>
+
+        <h2 class="titulo-secao-form">Narração (padrão inicial das TVs)</h2>
+        <p class="texto-suave">
+            Cada painel de TV também pode ajustar voz, velocidade, tom e volume individualmente
+            (botão ⚙ na própria tela), pois cada TV pode ter vozes diferentes instaladas.
+        </p>
+
+        <div class="linha-formulario">
+            <div>
+                <label for="narracao_idioma">Idioma padrão</label>
+                <input type="text" id="narracao_idioma" name="narracao_idioma" value="{{ valores.narracao_idioma }}">
+            </div>
+            <div>
+                <label for="narracao_repeticoes">Repetições da mensagem</label>
+                <input type="number" id="narracao_repeticoes" name="narracao_repeticoes" min="1" max="3"
+                       value="{{ valores.narracao_repeticoes }}">
+            </div>
+        </div>
+
+        <div class="acoes-formulario">
+            <button type="submit" class="btn btn-primario">Salvar configurações</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

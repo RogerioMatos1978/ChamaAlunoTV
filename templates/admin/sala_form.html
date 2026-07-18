@@ -1,0 +1,49 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}{{ 'Editar sala' if modo == 'editar' else 'Nova sala' }}{% endblock %}
+{% block admin_cabecalho %}{{ 'Editar sala' if modo == 'editar' else 'Nova sala' }}{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="cartao formulario-cartao">
+    <form method="POST" class="formulario">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <label for="nome">Nome da sala *</label>
+        <input type="text" id="nome" name="nome" required maxlength="80"
+               value="{{ sala.nome if sala else '' }}" placeholder="Ex.: Secretaria — Guichê 1">
+
+        <label for="descricao">Descrição</label>
+        <input type="text" id="descricao" name="descricao" maxlength="200"
+               value="{{ sala.descricao if sala and sala.descricao else '' }}"
+               placeholder="Ex.: Atendimento de matrícula">
+
+        <div class="linha-formulario">
+            <div>
+                <label for="cor">Cor de identificação</label>
+                <input type="color" id="cor" name="cor" value="{{ sala.cor if sala and sala.cor else '#164194' }}">
+            </div>
+            <div>
+                <label for="ordem">Ordem de exibição</label>
+                <input type="number" id="ordem" name="ordem" min="0" step="1"
+                       value="{{ sala.ordem if sala and sala.ordem is not none else 0 }}">
+            </div>
+        </div>
+
+        <label class="opcao-checkbox">
+            <input type="checkbox" name="ativa" {{ 'checked' if (sala is none) or (sala and sala.ativa) else '' }}>
+            Sala ativa (aparece no Kiosk e na Presença)
+        </label>
+
+        <label for="observacoes">Observações</label>
+        <textarea id="observacoes" name="observacoes" rows="3"
+                  placeholder="Anotações internas sobre esta sala">{{ sala.observacoes if sala and sala.observacoes else '' }}</textarea>
+
+        <div class="acoes-formulario">
+            <a href="{{ url_for('admin.salas_lista') }}" class="btn btn-secundario">Cancelar</a>
+            <button type="submit" class="btn btn-primario">Salvar</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

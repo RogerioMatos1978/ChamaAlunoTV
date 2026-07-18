@@ -1,0 +1,1461 @@
+/* =============================================================================
+   style.css
+   =========
+   Folha de estilos única do sistema (CSS puro, sem frameworks).
+   Organizada em seções que crescem junto com os módulos do projeto:
+
+     1. Variáveis globais (cores, espaçamentos, fontes)
+     2. Reset básico
+     3. Tipografia
+     4. Utilitários
+     5. Tela de verificação (Módulo 1 — removida quando o login existir)
+
+   Cada novo módulo (login, admin, kiosk, screen, presença) adiciona sua
+   própria seção neste arquivo, sempre reaproveitando as variáveis
+   definidas aqui em vez de "cravar" cores/tamanhos soltos pelo código.
+============================================================================= */
+
+/* ---------- 1. Variáveis globais ---------- */
+:root {
+    /* Identidade visual */
+    --cor-menu: #164194;
+    --cor-menu-hover: #1d55bf;
+    --cor-footer: #6CC2BA;
+
+    /* Paleta neutra (tema claro por padrão) */
+    --cor-fundo: #f4f6f9;
+    --cor-superficie: #ffffff;
+    --cor-texto: #1f2430;
+    --cor-texto-suave: #5c6470;
+    --cor-borda: #e1e5eb;
+
+    /* Estados */
+    --cor-sucesso: #2e9e5b;
+    --cor-alerta: #d98c1f;
+    --cor-erro: #d64545;
+    --cor-info: #3b82f6;
+
+    /* Espaçamentos e formas */
+    --raio-borda: 12px;
+    --raio-borda-pequeno: 6px;
+    --sombra-suave: 0 2px 10px rgba(0, 0, 0, 0.06);
+    --sombra-media: 0 6px 24px rgba(0, 0, 0, 0.12);
+    --transicao-padrao: all 0.2s ease-in-out;
+
+    /* Tipografia */
+    --fonte-base: "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Tema escuro: ativado adicionando a classe "tema-escuro" na tag <html> (Módulo 10) */
+html.tema-escuro {
+    --cor-fundo: #12151c;
+    --cor-superficie: #1c212c;
+    --cor-texto: #eef1f6;
+    --cor-texto-suave: #a4acb8;
+    --cor-borda: #2b3140;
+}
+
+/* ---------- 2. Reset básico ---------- */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: var(--fonte-base);
+    background-color: var(--cor-fundo);
+    color: var(--cor-texto);
+    -webkit-font-smoothing: antialiased;
+    transition: var(--transicao-padrao);
+}
+
+img {
+    max-width: 100%;
+    display: block;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button, input, select, textarea {
+    font-family: inherit;
+    font-size: inherit;
+}
+
+/* ---------- 3. Tipografia ---------- */
+h1, h2, h3, h4 {
+    line-height: 1.25;
+    font-weight: 600;
+}
+
+/* ---------- 4. Utilitários ---------- */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.cartao {
+    background: var(--cor-superficie);
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-suave);
+    border: 1px solid var(--cor-borda);
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1.25rem;
+    border: none;
+    border-radius: var(--raio-borda-pequeno);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transicao-padrao);
+}
+
+.btn-primario {
+    background: var(--cor-menu);
+    color: #fff;
+}
+
+.btn-primario:hover {
+    background: var(--cor-menu-hover);
+    transform: translateY(-1px);
+}
+
+/* ---------- 5. Tela de verificação (Módulo 1) ---------- */
+.tela-verificacao {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.cartao-verificacao {
+    background: var(--cor-superficie);
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-media);
+    padding: 3rem 2.5rem;
+    text-align: center;
+    max-width: 480px;
+    width: 100%;
+    border-top: 6px solid var(--cor-menu);
+    animation: aparecer 0.4s ease-out;
+}
+
+.cartao-verificacao h1 {
+    color: var(--cor-menu);
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.cartao-verificacao p {
+    color: var(--cor-texto-suave);
+    margin-bottom: 0.5rem;
+}
+
+.status-ok {
+    color: var(--cor-sucesso) !important;
+    font-weight: 600;
+    margin-top: 1rem !important;
+}
+
+.versao {
+    font-size: 0.8rem;
+    margin-top: 1.5rem !important;
+}
+
+@keyframes aparecer {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- 6. Mensagens instantâneas (flash) ---------- */
+.flash-container {
+    position: fixed;
+    top: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 420px;
+    padding: 0 1rem;
+}
+
+.flash {
+    padding: 0.85rem 1.1rem;
+    border-radius: var(--raio-borda-pequeno);
+    box-shadow: var(--sombra-media);
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #fff;
+    animation: aparecer 0.3s ease-out;
+}
+
+.flash-sucesso { background: var(--cor-sucesso); }
+.flash-erro    { background: var(--cor-erro); }
+.flash-alerta  { background: var(--cor-alerta); }
+
+/* ---------- 7. Tela de login (Módulo 2) ---------- */
+.tela-login {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    background: linear-gradient(160deg, var(--cor-menu) 0%, #0d2a63 100%);
+}
+
+.cartao-login {
+    background: var(--cor-superficie);
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-media);
+    padding: 2.75rem 2.5rem;
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+    animation: aparecer 0.4s ease-out;
+}
+
+.logo-login img {
+    max-height: 64px;
+    margin: 0 auto 1rem auto;
+}
+
+.cartao-login h1 {
+    color: var(--cor-menu);
+    font-size: 1.4rem;
+}
+
+.subtitulo-login {
+    color: var(--cor-texto-suave);
+    font-size: 0.9rem;
+    margin-bottom: 1.75rem !important;
+}
+
+.form-login {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    gap: 0.35rem;
+}
+
+.form-login label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+    margin-top: 0.5rem;
+}
+
+.form-login input {
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+    transition: var(--transicao-padrao);
+}
+
+.form-login input:focus {
+    outline: none;
+    border-color: var(--cor-menu);
+    box-shadow: 0 0 0 3px rgba(22, 65, 148, 0.15);
+}
+
+.btn-login {
+    margin-top: 1.5rem;
+    width: 100%;
+    padding: 0.85rem;
+    font-size: 1rem;
+}
+
+.rodape-login {
+    margin-top: 1.75rem !important;
+    font-size: 0.75rem;
+    color: var(--cor-texto-suave);
+}
+
+/* ---------- 8. Layout administrativo (Módulo 3) ---------- */
+.layout-admin {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    min-height: 100vh;
+}
+
+/* --- Menu lateral --- */
+.sidebar {
+    background: var(--cor-menu);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    padding: 1.25rem 0;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.sidebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0 1.25rem 1.5rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    margin-bottom: 1rem;
+}
+
+.sidebar-logo img {
+    max-height: 36px;
+}
+
+.sidebar-logo span {
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.2;
+}
+
+.sidebar-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    flex: 1;
+    padding: 0 0.75rem;
+}
+
+.sidebar-menu a, .sidebar-rodape a {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--raio-borda-pequeno);
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+    font-size: 0.92rem;
+    transition: var(--transicao-padrao);
+}
+
+.sidebar-menu a:hover, .sidebar-rodape a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.sidebar-menu a.ativo {
+    background: #fff;
+    color: var(--cor-menu);
+    font-weight: 700;
+}
+
+.sidebar-rodape {
+    padding: 0.75rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.icone {
+    font-size: 1.05rem;
+    width: 1.2rem;
+    text-align: center;
+}
+
+/* --- Área principal --- */
+.area-principal {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--cor-superficie);
+    border-bottom: 1px solid var(--cor-borda);
+    padding: 1rem 1.5rem;
+}
+
+.topbar h1 {
+    font-size: 1.2rem;
+}
+
+.btn-menu-mobile {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    color: var(--cor-texto);
+}
+
+.topbar-usuario {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+}
+
+.perfil-badge {
+    background: var(--cor-fundo);
+    border: 1px solid var(--cor-borda);
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    text-transform: capitalize;
+    color: var(--cor-texto-suave);
+}
+
+.conteudo-admin {
+    flex: 1;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* --- Rodapé do sistema --- */
+.footer-sistema {
+    background: var(--cor-footer);
+    color: #0d3330;
+    padding: 0.75rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* --- Indicadores do dashboard --- */
+.grade-indicadores {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.indicador {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    border-left: 5px solid var(--cor-menu);
+}
+
+.indicador-valor {
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--cor-texto);
+}
+
+.indicador-valor small {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--cor-texto-suave);
+}
+
+.indicador-rotulo {
+    font-size: 0.85rem;
+    color: var(--cor-texto-suave);
+}
+
+.indicador-alerta { border-left-color: var(--cor-alerta); }
+.indicador-sucesso { border-left-color: var(--cor-sucesso); }
+
+.secao-ultimo-chamado, .secao-grafico {
+    padding: 1.5rem;
+}
+
+.secao-ultimo-chamado h2, .secao-grafico h2 {
+    font-size: 1rem;
+    margin-bottom: 0.85rem;
+    color: var(--cor-texto);
+}
+
+.texto-suave { color: var(--cor-texto-suave); }
+
+/* --- Gráfico simples em barras (sem bibliotecas externas) --- */
+.grafico-barras {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+}
+
+.barra-linha {
+    display: grid;
+    grid-template-columns: 140px 1fr 2.5rem;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.barra-fundo {
+    background: var(--cor-fundo);
+    border-radius: 999px;
+    overflow: hidden;
+    height: 14px;
+}
+
+.barra-preenchida {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.barra-valor {
+    text-align: right;
+    font-weight: 600;
+}
+
+/* --- Tabelas --- */
+.tabela-responsiva {
+    overflow-x: auto;
+    padding: 0.5rem;
+}
+
+.tabela {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.tabela th {
+    text-align: left;
+    padding: 0.85rem 1rem;
+    color: var(--cor-texto-suave);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 2px solid var(--cor-borda);
+}
+
+.tabela td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+.tabela tbody tr:hover {
+    background: var(--cor-fundo);
+}
+
+.celula-acoes {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.celula-acoes form { display: inline; }
+
+.pastilha-cor {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border-radius: 5px;
+    border: 1px solid rgba(0,0,0,0.1);
+}
+
+.selo {
+    display: inline-block;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.selo-sucesso { background: rgba(46, 158, 91, 0.15); color: var(--cor-sucesso); }
+.selo-inativo { background: rgba(92, 100, 112, 0.15); color: var(--cor-texto-suave); }
+
+/* --- Barra de ações e botões auxiliares --- */
+.barra-acoes {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn-pequeno {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    background: var(--cor-fundo);
+    border: 1px solid var(--cor-borda);
+    color: var(--cor-texto);
+}
+
+.btn-pequeno:hover { background: var(--cor-borda); }
+
+.btn-perigo { background: var(--cor-erro); color: #fff; border-color: var(--cor-erro); }
+.btn-perigo:hover { background: #b83a3a; }
+
+.btn-secundario {
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+    border: 1px solid var(--cor-borda);
+}
+
+.estado-vazio {
+    padding: 3rem 1.5rem;
+    text-align: center;
+    color: var(--cor-texto-suave);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* --- Formulários administrativos --- */
+.formulario-cartao {
+    padding: 1.75rem;
+    max-width: 620px;
+}
+
+.formulario {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.formulario label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+    margin-top: 0.75rem;
+}
+
+.formulario input[type="text"],
+.formulario input[type="number"],
+.formulario input[type="email"],
+.formulario input[type="password"],
+.formulario textarea,
+.formulario select {
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+    background: var(--cor-fundo);
+    color: var(--cor-texto);
+    transition: var(--transicao-padrao);
+    resize: vertical;
+}
+
+.formulario input:focus, .formulario textarea:focus, .formulario select:focus {
+    outline: none;
+    border-color: var(--cor-menu);
+    box-shadow: 0 0 0 3px rgba(22, 65, 148, 0.15);
+}
+
+.formulario input[type="color"] {
+    width: 100%;
+    height: 42px;
+    padding: 0.2rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+    cursor: pointer;
+}
+
+.linha-formulario {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.opcao-checkbox {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.5rem !important;
+    margin-top: 1rem !important;
+    cursor: pointer;
+}
+
+.opcao-checkbox input { width: auto; }
+
+.acoes-formulario {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+/* ---------- 9. Alunos, fotos e importação CSV (Módulo 4) ---------- */
+.barra-acoes-espacada {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.form-busca {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.form-busca input, .form-busca select {
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+    background: var(--cor-superficie);
+}
+
+.acoes-agrupadas {
+    display: flex;
+    gap: 0.6rem;
+}
+
+.miniatura-aluno {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--cor-borda);
+}
+
+.selo-alerta {
+    background: rgba(217, 140, 31, 0.15);
+    color: var(--cor-alerta);
+    margin-left: 0.4rem;
+}
+
+.formulario-largo {
+    max-width: 780px;
+}
+
+.linha-foto {
+    grid-template-columns: 140px 1fr;
+    align-items: flex-start;
+}
+
+.bloco-foto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.preview-foto {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--cor-borda);
+    background: var(--cor-fundo);
+}
+
+.bloco-campos-principais {
+    display: flex;
+    flex-direction: column;
+}
+
+.bloco-exemplo-csv {
+    background: var(--cor-fundo);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+    padding: 0.9rem 1.1rem;
+    font-size: 0.85rem;
+    overflow-x: auto;
+    margin-bottom: 1rem;
+}
+
+.secao-resumo-importacao {
+    padding: 1.5rem;
+}
+
+.secao-resumo-importacao h2 {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* --- Responsividade do layout administrativo --- */
+@media (max-width: 900px) {
+    .layout-admin {
+        grid-template-columns: 1fr;
+    }
+    .sidebar {
+        position: fixed;
+        left: -260px;
+        width: 250px;
+        z-index: 999;
+        transition: left 0.25s ease;
+        box-shadow: var(--sombra-media);
+    }
+    .sidebar.aberta {
+        left: 0;
+    }
+    .btn-menu-mobile {
+        display: block;
+    }
+    .linha-formulario, .linha-foto {
+        grid-template-columns: 1fr;
+    }
+    .bloco-foto {
+        margin: 0 auto;
+    }
+}
+
+/* ---------- 10. Tela Kiosk (Módulo 5) ---------- */
+.tela-kiosk {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--cor-fundo);
+}
+
+.kiosk-topo {
+    background: var(--cor-superficie);
+    border-bottom: 1px solid var(--cor-borda);
+    padding: 1rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.kiosk-marca {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    color: var(--cor-menu);
+}
+
+.kiosk-marca img { max-height: 40px; }
+
+.kiosk-usuario {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.kiosk-conteudo {
+    flex: 1;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.kiosk-titulo {
+    font-size: 1.6rem;
+    padding-bottom: 0.75rem;
+}
+
+/* --- Seleção de sala --- */
+.grade-salas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.25rem;
+}
+
+.cartao-sala {
+    background: var(--cor-superficie);
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-suave);
+    border-top: 6px solid var(--cor-menu);
+    padding: 1.75rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: var(--transicao-padrao);
+}
+
+.cartao-sala:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--sombra-media);
+}
+
+.cartao-sala-nome {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--cor-texto);
+}
+
+.cartao-sala-desc {
+    font-size: 0.85rem;
+    color: var(--cor-texto-suave);
+}
+
+.cartao-sala-contagem {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--cor-menu);
+}
+
+/* --- Fila de alunos (cards grandes, pensados para toque) --- */
+.grade-alunos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 1.5rem;
+}
+
+.cartao-aluno {
+    position: relative;
+    background: var(--cor-superficie);
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-suave);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.5rem;
+    animation: aparecer 0.3s ease-out;
+}
+
+.etiqueta-prioridade {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background: var(--cor-alerta);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+}
+
+.foto-aluno {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--cor-borda);
+}
+
+.nome-aluno {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--cor-texto);
+}
+
+.turma-aluno {
+    font-size: 0.85rem;
+    color: var(--cor-texto-suave);
+}
+
+.btn-chamar {
+    margin-top: 0.5rem;
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    border: none;
+    border-radius: var(--raio-borda-pequeno);
+    background: var(--cor-sucesso);
+    color: #fff;
+    cursor: pointer;
+    transition: var(--transicao-padrao);
+}
+
+.btn-chamar:hover { background: #268650; transform: translateY(-2px); }
+.btn-chamar:disabled { background: var(--cor-borda); color: var(--cor-texto-suave); cursor: wait; }
+
+@media (max-width: 600px) {
+    .kiosk-conteudo { padding: 1.25rem; }
+    .grade-alunos, .grade-salas { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+    .foto-aluno { width: 80px; height: 80px; }
+}
+
+/* ---------- 11. Tela Screen / painel de TV (Módulo 6) ---------- */
+.tela-screen {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    color: #fff;
+    overflow: hidden;
+    font-family: var(--fonte-base);
+}
+
+.screen-ocioso, .screen-chamada {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+    padding: 2rem;
+}
+
+.screen-ocioso.visivel, .screen-chamada.visivel {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.screen-logo-ocioso {
+    max-height: 90px;
+    margin-bottom: 1.5rem;
+}
+
+.screen-instituicao {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.screen-aguardando {
+    margin-top: 1rem;
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.pontos-piscando {
+    animation: piscar 1.4s infinite;
+}
+
+@keyframes piscar {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+}
+
+.screen-relogio {
+    margin-top: 2.5rem;
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.screen-foto {
+    width: min(38vw, 420px);
+    height: min(38vw, 420px);
+    object-fit: cover;
+    border-radius: 50%;
+    border: 6px solid var(--cor-footer);
+    box-shadow: 0 0 60px rgba(108, 194, 186, 0.35);
+    margin-bottom: 2rem;
+}
+
+.screen-nome {
+    font-size: clamp(2.5rem, 6vw, 5.5rem);
+    font-weight: 800;
+    line-height: 1.1;
+    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+
+.screen-turma {
+    font-size: clamp(1.3rem, 2.6vw, 2.2rem);
+    color: var(--cor-footer);
+    font-weight: 600;
+    margin-top: 0.75rem;
+}
+
+.screen-sala {
+    font-size: clamp(1.1rem, 2vw, 1.6rem);
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 0.5rem;
+}
+
+.efeito-zoom .screen-foto,
+.efeito-zoom .screen-nome {
+    animation: zoomEntrada 0.6s ease-out;
+}
+
+@keyframes zoomEntrada {
+    from { transform: scale(0.85); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}
+
+/* --- Controles flutuantes --- */
+.screen-controles {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 20;
+}
+
+.botao-controle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    font-size: 1.15rem;
+    cursor: pointer;
+    transition: var(--transicao-padrao);
+}
+
+.botao-controle:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* --- Painel de configuração de narração --- */
+.painel-config-voz {
+    position: fixed;
+    top: 4.5rem;
+    right: 1rem;
+    width: 300px;
+    background: var(--cor-superficie);
+    color: var(--cor-texto);
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-media);
+    padding: 1.25rem;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.painel-config-voz.oculto {
+    display: none;
+}
+
+.painel-config-voz h2 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.painel-config-voz label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--cor-texto-suave);
+    margin-top: 0.5rem;
+}
+
+.painel-config-voz select,
+.painel-config-voz input[type="text"] {
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+}
+
+.painel-config-voz input[type="range"] {
+    width: 100%;
+}
+
+.painel-config-acoes {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+/* ---------- 12. Tela de Presença (Módulo 7) ---------- */
+.tela-presenca {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: var(--cor-fundo);
+}
+
+.presenca-topo {
+    background: var(--cor-superficie);
+    border-bottom: 1px solid var(--cor-borda);
+    padding: 1rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.presenca-conteudo {
+    flex: 1;
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.presenca-barra-busca {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.presenca-barra-busca input {
+    flex: 1;
+    min-width: 260px;
+    padding: 0.85rem 1.1rem;
+    font-size: 1rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+    background: var(--cor-superficie);
+}
+
+.presenca-contador {
+    font-weight: 700;
+    color: var(--cor-menu);
+    white-space: nowrap;
+}
+
+.presenca-filtros {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.pilula-filtro {
+    --cor-pilula: var(--cor-menu);
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    border: 1px solid var(--cor-borda);
+    background: var(--cor-superficie);
+    color: var(--cor-texto);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transicao-padrao);
+}
+
+.pilula-filtro span { color: var(--cor-texto-suave); }
+
+.pilula-filtro:hover {
+    border-color: var(--cor-pilula);
+}
+
+.pilula-filtro.ativa {
+    background: var(--cor-pilula);
+    border-color: var(--cor-pilula);
+    color: #fff;
+}
+
+.pilula-filtro.ativa span { color: rgba(255, 255, 255, 0.85); }
+
+.grade-presenca {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.25rem;
+}
+
+.cartao-presenca {
+    position: relative;
+    background: var(--cor-superficie);
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-suave);
+    padding: 1.35rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.4rem;
+    animation: aparecer 0.3s ease-out;
+}
+
+.selo-sala {
+    margin-top: 0.4rem;
+    padding: 0.2rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+@media (max-width: 600px) {
+    .grade-presenca { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.85rem; }
+}
+
+/* ---------- 13. Histórico e exportações (Módulo 8) ---------- */
+.formulario-filtros {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.linha-filtros-historico {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    align-items: center;
+}
+
+.linha-filtros-historico input,
+.linha-filtros-historico select {
+    padding: 0.6rem 0.85rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+    background: var(--cor-fundo);
+}
+
+.linha-filtros-historico input[type="text"] {
+    flex: 1;
+    min-width: 200px;
+}
+
+.acoes-exportacao {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--cor-borda);
+    padding-top: 1rem;
+}
+
+/* ---------- 14. Extras finais (Módulo 10): tema, formulários, guichê ---------- */
+.botao-tema {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--cor-borda);
+    background: var(--cor-fundo);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: var(--transicao-padrao);
+}
+
+.botao-tema:hover { background: var(--cor-borda); }
+
+.titulo-secao-form {
+    font-size: 1rem;
+    color: var(--cor-menu);
+    margin-top: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--cor-borda);
+}
+
+.titulo-secao-form:first-child { margin-top: 0; }
+
+.campo-guiche {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.campo-guiche input {
+    width: 90px;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda-pequeno);
+}
+
+.qrcode-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+}
+
+.qrcode-modal.oculto { display: none; }
+
+.qrcode-modal-conteudo {
+    background: var(--cor-superficie);
+    padding: 1.5rem;
+    border-radius: var(--raio-borda);
+    text-align: center;
+    max-width: 280px;
+}
+
+.qrcode-modal-conteudo img {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+/* ---------- 15. Últimos chamados e aviso de atualização (Módulo 11) ---------- */
+.secao-recentes {
+    margin-top: 1rem;
+}
+
+.secao-recentes h2 {
+    font-size: 1rem;
+    color: var(--cor-texto-suave);
+    margin-bottom: 0.85rem;
+}
+
+.lista-recentes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 0.85rem;
+}
+
+.cartao-recente {
+    background: var(--cor-superficie);
+    border: 1px solid var(--cor-borda);
+    border-radius: var(--raio-borda);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: aparecer 0.3s ease-out;
+}
+
+.foto-recente {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--cor-borda);
+    flex-shrink: 0;
+}
+
+.info-recente {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
+}
+
+.nome-recente {
+    font-weight: 700;
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.turma-recente {
+    font-size: 0.78rem;
+    color: var(--cor-texto-suave);
+}
+
+.btn-repetir {
+    flex-shrink: 0;
+}
+
+/* --- Aviso de dados atualizados --- */
+.banner-atualizacao {
+    position: fixed;
+    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 900;
+    background: var(--cor-menu);
+    color: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: var(--raio-borda);
+    box-shadow: var(--sombra-media);
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    font-size: 0.88rem;
+    animation: aparecer 0.3s ease-out;
+}
+
+.banner-atualizacao.oculto {
+    display: none;
+}
+
+.banner-atualizacao .btn {
+    background: #fff;
+    color: var(--cor-menu);
+}
+
+.btn-fechar-banner {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+    line-height: 1;
+    opacity: 0.8;
+}
+
+.btn-fechar-banner:hover { opacity: 1; }

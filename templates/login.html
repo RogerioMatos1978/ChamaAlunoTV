@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block titulo %}Entrar — {{ nome_instituicao }}{% endblock %}
+
+{% block conteudo %}
+<main class="tela-login">
+    <div class="cartao-login">
+        <div class="logo-login">
+            <img src="{{ url_for('static', filename='img/logos/logo.png') }}"
+                 alt="{{ nome_instituicao }}"
+                 onerror="this.style.display='none'">
+        </div>
+
+        <h1>{{ nome_instituicao }}</h1>
+        <p class="subtitulo-login">Sistema de Chamada Inteligente de Alunos</p>
+
+        <form method="POST" action="{{ url_for('auth.login') }}" class="form-login">
+            <!-- Proteção CSRF (Flask-WTF) -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="proximo" value="{{ proximo }}">
+
+            <label for="usuario">Usuário</label>
+            <input type="text" id="usuario" name="usuario" placeholder="Digite seu usuário"
+                   autocomplete="username" autofocus required>
+
+            <label for="senha">Senha</label>
+            <input type="password" id="senha" name="senha" placeholder="Digite sua senha"
+                   autocomplete="current-password" required>
+
+            <button type="submit" class="btn btn-primario btn-login">Entrar</button>
+        </form>
+
+        <p class="rodape-login">Versão {{ versao_sistema }}</p>
+    </div>
+</main>
+{% endblock %}

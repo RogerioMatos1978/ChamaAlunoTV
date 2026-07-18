@@ -1,0 +1,81 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}Alunos{% endblock %}
+{% block admin_cabecalho %}Alunos{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="barra-acoes barra-acoes-espacada">
+    <form method="GET" class="form-busca">
+        <input type="text" name="busca" placeholder="Buscar por nome, turma ou código..." value="{{ busca }}">
+        <select name="sala_id" onchange="this.form.submit()">
+            <option value="">Todas as salas</option>
+            {% for sala in salas %}
+            <option value="{{ sala.id }}" {{ 'selected' if sala_id == sala.id else '' }}>{{ sala.nome }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-secundario">Buscar</button>
+    </form>
+    <div class="acoes-agrupadas">
+        <a href="{{ url_for('admin.alunos_importar') }}" class="btn btn-secundario">Importar CSV</a>
+        <a href="{{ url_for('admin.alunos_novo') }}" class="btn btn-primario">+ Novo aluno</a>
+    </div>
+</div>
+
+{% if alunos %}
+<div class="cartao tabela-responsiva">
+    <table class="tabela">
+        <thead>
+            <tr>
+                <th>Foto</th>
+                <th>Nome</th>
+                <th>Turma</th>
+                <th>Sala</th>
+                <th>Código</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for aluno in alunos %}
+            <tr>
+                <td><img class="miniatura-aluno" src="{{ foto_url(aluno.foto) }}" alt="{{ aluno.nome }}"></td>
+                <td>
+                    {{ aluno.nome }}
+                    {% if aluno.prioridade %}<span class="selo selo-alerta">Prioridade</span>{% endif %}
+                </td>
+                <td>{{ aluno.turma or '—' }}</td>
+                <td>
+                    {% if aluno.sala_nome %}
+                        <span class="pastilha-cor" style="background: {{ aluno.sala_cor }};"></span> {{ aluno.sala_nome }}
+                    {% else %}—{% endif %}
+                </td>
+                <td>{{ aluno.codigo or '—' }}</td>
+                <td>
+                    {% if aluno.status == 'aguardando' %}
+                        <span class="selo selo-sucesso">Aguardando</span>
+                    {% else %}
+                        <span class="selo selo-inativo">Chamado</span>
+                    {% endif %}
+                </td>
+                <td class="celula-acoes">
+                    <a href="{{ url_for('admin.alunos_editar', aluno_id=aluno.id) }}" class="btn btn-pequeno">Editar</a>
+                    <form method="POST" action="{{ url_for('admin.alunos_excluir', aluno_id=aluno.id) }}"
+                          onsubmit="return confirm('Excluir o aluno \'{{ aluno.nome }}\'?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-pequeno btn-perigo">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="cartao estado-vazio">
+    <p>Nenhum aluno encontrado.</p>
+    <a href="{{ url_for('admin.alunos_novo') }}" class="btn btn-primario">Cadastrar o primeiro aluno</a>
+</div>
+{% endif %}
+
+{% endblock %}

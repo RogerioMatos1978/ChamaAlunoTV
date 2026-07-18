@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}{{ nome_instituicao }}{% endblock %}</title>
+
+    <!-- CSS único do sistema (sem frameworks externos, conforme especificação) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <!-- Ícone da aba do navegador -->
+    <link rel="icon" href="{{ url_for('static', filename='img/icons/favicon.png') }}" type="image/png">
+
+    <!-- Cores de identidade visual definidas em Configurações (Módulo 10)
+         sobrescrevem as variáveis padrão do style.css. -->
+    <style>
+        :root {
+            --cor-menu: {{ cor_menu }};
+            --cor-footer: {{ cor_footer }};
+        }
+    </style>
+
+    {% block head_extra %}{% endblock %}
+
+    <script>
+        // Aplica o tema salvo (claro/escuro) ANTES do corpo renderizar, para
+        // evitar o "flash" de tela clara antes de escurecer.
+        if (localStorage.getItem("chamada_alunos_tema") === "escuro") {
+            document.documentElement.classList.add("tema-escuro");
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Mensagens instantâneas (sucesso, erro, alerta) usadas em todo o sistema -->
+    {% with mensagens = get_flashed_messages(with_categories=true) %}
+        {% if mensagens %}
+        <div class="flash-container">
+            {% for categoria, mensagem in mensagens %}
+            <div class="flash flash-{{ categoria }}">{{ mensagem }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    {% endwith %}
+
+    {% block conteudo %}{% endblock %}
+
+    {% if request.endpoint != 'screen.tela' %}
+    <!-- Aviso de dados atualizados (Módulo 11): aparece quando outra tela
+         altera salas/alunos, para o usuário decidir quando atualizar —
+         sem recarregar a página sozinho e sem perder o que ele está
+         digitando/fazendo no momento. -->
+    <div class="banner-atualizacao oculto" id="banner-atualizacao">
+        <span>🔄 Há novas informações disponíveis.</span>
+        <button type="button" id="btn-atualizar-banner" class="btn btn-pequeno">Atualizar agora</button>
+        <button type="button" id="btn-fechar-banner" class="btn-fechar-banner" aria-label="Fechar">×</button>
+    </div>
+    {% endif %}
+
+    <!-- Cliente Socket.IO (necessário em praticamente todas as telas).
+         Uma única conexão global (window.socketApp) é reaproveitada por
+         todos os scripts de página (kiosk.js, presenca.js, screen.js). -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
+    <script>
+        window.socketApp = io();
+    </script>
+
+    <script>
+        // Some as mensagens instantâneas automaticamente após alguns segundos,
+        // para não atrapalhar quem está usando o sistema no dia a dia.
+        document.querySelectorAll(".flash").forEach(function (el) {
+            setTimeout(function () {
+                el.style.transition = "opacity 0.4s ease";
+                el.style.opacity = "0";
+                setTimeout(function () { el.remove(); }, 400);
+            }, 4000);
+        });
+
+        // Tema claro/escuro (Módulo 10): qualquer botão com id="btn-tema"
+        // em qualquer tela chama esta mesma função global.
+        function alternarTema() {
+            const escuro = document.documentElement.classList.toggle("tema-escuro");
+            localStorage.setItem("chamada_alunos_tema", escuro ? "escuro" : "claro");
+        }
+        document.addEventListener("DOMContentLoaded", function () {
+            const botao = document.getElementById("btn-tema");
+            if (botao) botao.addEventListener("click", alternarTema);
+        });
+
+        // Aviso de dados atualizados (Módulo 11): quando um administrador
+        // cria/edita/exclui uma sala ou aluno em qualquer lugar do sistema,
+        // todas as outras telas abertas recebem este evento e mostram o
+        // aviso — sem interromper o que o usuário está fazendo.
+        (function () {
+            const banner = document.getElementById("banner-atualizacao");
+            if (!banner || !window.socketApp) return;
+
+            window.socketApp.on("dados_atualizados", function () {
+                banner.classList.remove("oculto");
+            });
+
+            const btnAtualizar = document.getElementById("btn-atualizar-banner");
+            if (btnAtualizar) btnAtualizar.addEventListener("click", function () { location.reload(); });
+
+            const btnFechar = document.getElementById("btn-fechar-banner");
+            if (btnFechar) btnFechar.addEventListener("click", function () { banner.classList.add("oculto"); });
+        })();
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

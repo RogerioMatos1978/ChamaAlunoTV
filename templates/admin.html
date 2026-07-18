@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{#
+    admin.html
+    ==========
+    Layout compartilhado por TODAS as telas administrativas (dashboard,
+    salas, e nos próximos módulos: alunos, importação, histórico,
+    usuários, configurações, auditoria).
+
+    Cada tela específica fica em templates/admin/<nome>.html e estende
+    este layout, preenchendo apenas o bloco "admin_conteudo".
+#}
+
+{% block titulo %}{% block admin_titulo %}Painel{% endblock %} — {{ nome_instituicao }}{% endblock %}
+
+{% block conteudo %}
+<div class="layout-admin">
+
+    <!-- ---------- Menu lateral ---------- -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <img src="{{ url_for('static', filename='img/logos/logo.png') }}"
+                 alt="{{ nome_instituicao }}" onerror="this.style.display='none'">
+            <span>{{ nome_instituicao }}</span>
+        </div>
+
+        <nav class="sidebar-menu">
+            <a href="{{ url_for('admin.dashboard') }}"
+               class="{{ 'ativo' if request.endpoint == 'admin.dashboard' else '' }}">
+                <span class="icone">▦</span> Dashboard
+            </a>
+            <a href="{{ url_for('admin.salas_lista') }}"
+               class="{{ 'ativo' if request.endpoint and request.endpoint.startswith('admin.salas') else '' }}">
+                <span class="icone">🏫</span> Salas
+            </a>
+            <a href="{{ url_for('admin.alunos_lista') }}"
+               class="{{ 'ativo' if request.endpoint and request.endpoint.startswith('admin.alunos') else '' }}">
+                <span class="icone">🎓</span> Alunos
+            </a>
+            <a href="{{ url_for('admin.historico_lista') }}"
+               class="{{ 'ativo' if request.endpoint and request.endpoint.startswith('admin.historico') else '' }}">
+                <span class="icone">🕘</span> Histórico
+            </a>
+            <a href="{{ url_for('admin.auditoria') }}"
+               class="{{ 'ativo' if request.endpoint == 'admin.auditoria' else '' }}">
+                <span class="icone">🛡</span> Auditoria
+            </a>
+            {% if perfil_logado == 'administrador' %}
+            <a href="{{ url_for('admin.usuarios_lista') }}"
+               class="{{ 'ativo' if request.endpoint and request.endpoint.startswith('admin.usuarios') else '' }}">
+                <span class="icone">👤</span> Usuários
+            </a>
+            <a href="{{ url_for('admin.backup_lista') }}"
+               class="{{ 'ativo' if request.endpoint and request.endpoint.startswith('admin.backup') else '' }}">
+                <span class="icone">💾</span> Backup
+            </a>
+            <a href="{{ url_for('admin.configuracoes') }}"
+               class="{{ 'ativo' if request.endpoint == 'admin.configuracoes' else '' }}">
+                <span class="icone">⚙</span> Configurações
+            </a>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-rodape">
+            <a href="{{ url_for('kiosk.selecionar_sala') }}">
+                <span class="icone">📣</span> Ir para o Kiosk
+            </a>
+            <a href="{{ url_for('presenca.lista') }}" target="_blank" rel="noopener">
+                <span class="icone">📋</span> Painel de Presença
+            </a>
+            <a href="{{ url_for('screen.tela') }}" target="_blank" rel="noopener">
+                <span class="icone">📺</span> Abrir painel de TV
+            </a>
+            <a href="{{ url_for('auth.logout') }}">
+                <span class="icone">⏻</span> Sair
+            </a>
+        </div>
+    </aside>
+
+    <!-- ---------- Área principal ---------- -->
+    <div class="area-principal">
+        <header class="topbar">
+            <button id="btn-menu" class="btn-menu-mobile" aria-label="Abrir menu">☰</button>
+            <h1>{% block admin_cabecalho %}{% endblock %}</h1>
+            <div class="topbar-usuario">
+                <button id="btn-tema" class="botao-tema" title="Alternar tema claro/escuro">🌓</button>
+                <span>{{ usuario_logado }}</span>
+                <span class="perfil-badge">{{ perfil_logado }}</span>
+            </div>
+        </header>
+
+        <main class="conteudo-admin">
+            {% block admin_conteudo %}{% endblock %}
+        </main>
+
+        <footer class="footer-sistema">
+            <span>{{ nome_instituicao }}</span>
+            <span id="relogio-rodape"></span>
+            <span>Versão {{ versao_sistema }}</span>
+        </footer>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% block admin_scripts_extra %}{% endblock %}
+{% endblock %}

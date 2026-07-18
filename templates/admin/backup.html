@@ -1,0 +1,57 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}Backup{% endblock %}
+{% block admin_cabecalho %}Backup e restauração{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="cartao secao-ultimo-chamado">
+    <p class="texto-suave" style="margin-bottom: 1rem;">
+        O sistema cria backups automáticos periodicamente (a cada
+        {{ config.BACKUP_INTERVALO_HORAS }}h) e mantém os últimos
+        {{ config.BACKUP_MANTER_ULTIMOS }} arquivos. Você também pode criar um
+        backup manual a qualquer momento.
+    </p>
+    <form method="POST" action="{{ url_for('admin.backup_novo') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-primario">💾 Criar backup agora</button>
+    </form>
+</div>
+
+{% if backups %}
+<div class="cartao tabela-responsiva">
+    <table class="tabela">
+        <thead>
+            <tr>
+                <th>Arquivo</th>
+                <th>Criado em</th>
+                <th>Tamanho</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for b in backups %}
+            <tr>
+                <td>{{ b.nome }}</td>
+                <td>{{ b.criado_em }}</td>
+                <td>{{ b.tamanho_kb }} KB</td>
+                <td class="celula-acoes">
+                    <a href="{{ url_for('admin.backup_baixar', nome_arquivo=b.nome) }}" class="btn btn-pequeno">⬇ Baixar</a>
+                    <form method="POST" action="{{ url_for('admin.backup_restaurar', nome_arquivo=b.nome) }}"
+                          onsubmit="return confirm('Restaurar este backup vai SUBSTITUIR todos os dados atuais pelos dados de \'{{ b.nome }}\'. Deseja continuar?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-pequeno btn-perigo">↺ Restaurar</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="cartao estado-vazio">
+    <p>Nenhum backup criado ainda.</p>
+</div>
+{% endif %}
+
+{% endblock %}

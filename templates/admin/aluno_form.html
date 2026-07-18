@@ -1,0 +1,76 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}{{ 'Editar aluno' if modo == 'editar' else 'Novo aluno' }}{% endblock %}
+{% block admin_cabecalho %}{{ 'Editar aluno' if modo == 'editar' else 'Novo aluno' }}{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="cartao formulario-cartao formulario-largo">
+    <form method="POST" enctype="multipart/form-data" class="formulario">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="linha-formulario linha-foto">
+            <div class="bloco-foto">
+                <img class="preview-foto" id="preview-foto"
+                     src="{{ foto_url(aluno.foto) if (aluno and aluno.foto) else url_for('static', filename='img/icons/default_avatar.png') }}"
+                     alt="Foto do aluno">
+                <label for="foto" class="btn btn-secundario btn-pequeno">Escolher foto</label>
+                <input type="file" id="foto" name="foto" accept=".png,.jpg,.jpeg,.webp" style="display:none"
+                       onchange="document.getElementById('preview-foto').src = URL.createObjectURL(this.files[0])">
+            </div>
+
+            <div class="bloco-campos-principais">
+                <label for="nome">Nome do aluno *</label>
+                <input type="text" id="nome" name="nome" required maxlength="150"
+                       value="{{ aluno.nome if aluno else '' }}" placeholder="Nome completo">
+
+                <div class="linha-formulario">
+                    <div>
+                        <label for="turma">Turma / Série</label>
+                        <input type="text" id="turma" name="turma" maxlength="60"
+                               value="{{ aluno.turma if aluno and aluno.turma else '' }}" placeholder="Ex.: 1º Ano A">
+                    </div>
+                    <div>
+                        <label for="sala_id">Sala</label>
+                        <select id="sala_id" name="sala_id">
+                            <option value="">Sem sala definida</option>
+                            {% for sala in salas %}
+                            <option value="{{ sala.id }}"
+                                {{ 'selected' if aluno and aluno.sala_id == sala.id else '' }}>{{ sala.nome }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="linha-formulario">
+            <div>
+                <label for="codigo">Código / Matrícula</label>
+                <input type="text" id="codigo" name="codigo" maxlength="40"
+                       value="{{ aluno.codigo if aluno and aluno.codigo else '' }}">
+            </div>
+            <div>
+                <label for="cpf">CPF (opcional)</label>
+                <input type="text" id="cpf" name="cpf" maxlength="14"
+                       value="{{ aluno.cpf if aluno and aluno.cpf else '' }}" placeholder="000.000.000-00">
+            </div>
+        </div>
+
+        <label class="opcao-checkbox">
+            <input type="checkbox" name="prioridade" {{ 'checked' if aluno and aluno.prioridade else '' }}>
+            Atendimento prioritário (aparece primeiro na fila)
+        </label>
+
+        <label for="observacoes">Observações</label>
+        <textarea id="observacoes" name="observacoes" rows="3"
+                  placeholder="Anotações internas sobre este aluno">{{ aluno.observacoes if aluno and aluno.observacoes else '' }}</textarea>
+
+        <div class="acoes-formulario">
+            <a href="{{ url_for('admin.alunos_lista') }}" class="btn btn-secundario">Cancelar</a>
+            <button type="submit" class="btn btn-primario">Salvar</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

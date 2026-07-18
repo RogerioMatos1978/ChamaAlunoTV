@@ -1,0 +1,52 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}{{ 'Editar usuário' if modo == 'editar' else 'Novo usuário' }}{% endblock %}
+{% block admin_cabecalho %}{{ 'Editar usuário' if modo == 'editar' else 'Novo usuário' }}{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="cartao formulario-cartao">
+    <form method="POST" class="formulario">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <label for="nome">Nome completo *</label>
+        <input type="text" id="nome" name="nome" required maxlength="120"
+               value="{{ usuario.nome if usuario else '' }}">
+
+        <label for="usuario">Login *</label>
+        <input type="text" id="usuario" name="usuario" required maxlength="60"
+               value="{{ usuario.usuario if usuario else '' }}" {{ 'readonly' if modo == 'editar' else '' }}>
+
+        <label for="email">E-mail</label>
+        <input type="email" id="email" name="email" maxlength="150"
+               value="{{ usuario.email if usuario and usuario.email else '' }}">
+
+        <label for="perfil">Perfil de acesso *</label>
+        <select id="perfil" name="perfil">
+            {% for p in perfis %}
+            <option value="{{ p }}" {{ 'selected' if usuario and usuario.perfil == p else '' }}
+                style="text-transform: capitalize;">{{ p|capitalize }}</option>
+            {% endfor %}
+        </select>
+
+        {% if modo == 'novo' %}
+        <label for="senha">Senha *</label>
+        <input type="password" id="senha" name="senha" required minlength="4">
+        {% else %}
+        <label for="nova_senha">Nova senha (deixe em branco para manter a atual)</label>
+        <input type="password" id="nova_senha" name="nova_senha" minlength="4">
+
+        <label class="opcao-checkbox">
+            <input type="checkbox" name="ativo" {{ 'checked' if usuario and usuario.ativo else '' }}>
+            Usuário ativo (pode fazer login)
+        </label>
+        {% endif %}
+
+        <div class="acoes-formulario">
+            <a href="{{ url_for('admin.usuarios_lista') }}" class="btn btn-secundario">Cancelar</a>
+            <button type="submit" class="btn btn-primario">Salvar</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

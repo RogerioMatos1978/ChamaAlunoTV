@@ -1,0 +1,88 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}Salas{% endblock %}
+{% block admin_cabecalho %}Salas{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="barra-acoes">
+    <a href="{{ url_for('admin.salas_nova') }}" class="btn btn-primario">+ Nova sala</a>
+</div>
+
+{% if salas %}
+<div class="cartao tabela-responsiva">
+    <table class="tabela">
+        <thead>
+            <tr>
+                <th>Ordem</th>
+                <th>Cor</th>
+                <th>Nome</th>
+                <th>Descrição</th>
+                <th>Aguardando</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sala in salas %}
+            <tr>
+                <td>{{ sala.ordem }}</td>
+                <td><span class="pastilha-cor" style="background: {{ sala.cor }};"></span></td>
+                <td>{{ sala.nome }}</td>
+                <td>{{ sala.descricao or '—' }}</td>
+                <td>{{ sala.alunos_aguardando }}</td>
+                <td>
+                    {% if sala.ativa %}
+                        <span class="selo selo-sucesso">Ativa</span>
+                    {% else %}
+                        <span class="selo selo-inativo">Inativa</span>
+                    {% endif %}
+                </td>
+                <td class="celula-acoes">
+                    <button type="button" class="btn btn-pequeno btn-qrcode" data-sala-nome="{{ sala.nome }}"
+                            data-sala-id="{{ sala.id }}">QR Code</button>
+                    <a href="{{ url_for('admin.salas_editar', sala_id=sala.id) }}" class="btn btn-pequeno">Editar</a>
+                    <form method="POST" action="{{ url_for('admin.salas_excluir', sala_id=sala.id) }}"
+                          onsubmit="return confirm('Excluir a sala \'{{ sala.nome }}\'? Os alunos vinculados não serão apagados.');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-pequeno btn-perigo">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="cartao estado-vazio">
+    <p>Nenhuma sala cadastrada ainda.</p>
+    <a href="{{ url_for('admin.salas_nova') }}" class="btn btn-primario">Cadastrar a primeira sala</a>
+</div>
+{% endif %}
+
+<!-- Modal do QR Code (Módulo 10) -->
+<div class="qrcode-modal oculto" id="modal-qrcode">
+    <div class="qrcode-modal-conteudo">
+        <h3 id="qrcode-titulo">QR Code</h3>
+        <img id="qrcode-imagem" src="" alt="QR Code da sala">
+        <p class="texto-suave">Aponte a câmera do celular para acompanhar a fila desta sala.</p>
+        <button type="button" class="btn btn-secundario" id="btn-fechar-qrcode">Fechar</button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block admin_scripts_extra %}
+<script>
+    document.querySelectorAll(".btn-qrcode").forEach(function (botao) {
+        botao.addEventListener("click", function () {
+            document.getElementById("qrcode-titulo").textContent = "QR Code — " + botao.dataset.salaNome;
+            document.getElementById("qrcode-imagem").src = "/admin/salas/" + botao.dataset.salaId + "/qrcode.png";
+            document.getElementById("modal-qrcode").classList.remove("oculto");
+        });
+    });
+    document.getElementById("btn-fechar-qrcode").addEventListener("click", function () {
+        document.getElementById("modal-qrcode").classList.add("oculto");
+    });
+</script>
+{% endblock %}

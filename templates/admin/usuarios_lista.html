@@ -1,0 +1,51 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}Usuários{% endblock %}
+{% block admin_cabecalho %}Usuários{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="barra-acoes">
+    <a href="{{ url_for('admin.usuarios_novo') }}" class="btn btn-primario">+ Novo usuário</a>
+</div>
+
+<div class="cartao tabela-responsiva">
+    <table class="tabela">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Login</th>
+                <th>Perfil</th>
+                <th>Status</th>
+                <th>Último login</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in usuarios %}
+            <tr>
+                <td>{{ u.nome }}</td>
+                <td>{{ u.usuario }}</td>
+                <td style="text-transform: capitalize;">{{ u.perfil }}</td>
+                <td>
+                    {% if u.ativo %}<span class="selo selo-sucesso">Ativo</span>
+                    {% else %}<span class="selo selo-inativo">Inativo</span>{% endif %}
+                </td>
+                <td>{{ u.ultimo_login or 'Nunca' }}</td>
+                <td class="celula-acoes">
+                    <a href="{{ url_for('admin.usuarios_editar', usuario_id=u.id) }}" class="btn btn-pequeno">Editar</a>
+                    {% if u.id != session.usuario_id %}
+                    <form method="POST" action="{{ url_for('admin.usuarios_excluir', usuario_id=u.id) }}"
+                          onsubmit="return confirm('Excluir o usuário \'{{ u.nome }}\'?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-pequeno btn-perigo">Excluir</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

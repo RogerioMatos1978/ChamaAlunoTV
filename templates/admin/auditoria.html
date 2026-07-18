@@ -1,0 +1,48 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}Auditoria{% endblock %}
+{% block admin_cabecalho %}Auditoria{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="presenca-filtros">
+    <a href="{{ url_for('admin.auditoria') }}" class="pilula-filtro {{ 'ativa' if not tipo else '' }}">Todos</a>
+    <a href="{{ url_for('admin.auditoria', tipo='login') }}" class="pilula-filtro {{ 'ativa' if tipo == 'login' else '' }}">Login</a>
+    <a href="{{ url_for('admin.auditoria', tipo='chamada') }}" class="pilula-filtro {{ 'ativa' if tipo == 'chamada' else '' }}">Chamadas</a>
+    <a href="{{ url_for('admin.auditoria', tipo='importacao') }}" class="pilula-filtro {{ 'ativa' if tipo == 'importacao' else '' }}">Importações</a>
+    <a href="{{ url_for('admin.auditoria', tipo='alteracao') }}" class="pilula-filtro {{ 'ativa' if tipo == 'alteracao' else '' }}">Alterações</a>
+    <a href="{{ url_for('admin.auditoria', tipo='erro') }}" class="pilula-filtro {{ 'ativa' if tipo == 'erro' else '' }}">Erros</a>
+</div>
+
+{% if registros %}
+<div class="cartao tabela-responsiva">
+    <table class="tabela">
+        <thead>
+            <tr>
+                <th>Data/hora</th>
+                <th>Tipo</th>
+                <th>Mensagem</th>
+                <th>Usuário</th>
+                <th>IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for registro in registros %}
+            <tr>
+                <td style="white-space: nowrap;">{{ registro.criado_em }}</td>
+                <td><span class="selo selo-inativo" style="text-transform: capitalize;">{{ registro.tipo }}</span></td>
+                <td>{{ registro.mensagem }}</td>
+                <td>{{ registro.usuario_nome or '—' }}</td>
+                <td>{{ registro.ip or '—' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="cartao estado-vazio">
+    <p>Nenhum registro de auditoria encontrado.</p>
+</div>
+{% endif %}
+
+{% endblock %}

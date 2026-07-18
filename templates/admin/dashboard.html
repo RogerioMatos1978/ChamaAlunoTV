@@ -1,0 +1,75 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}Dashboard{% endblock %}
+{% block admin_cabecalho %}Dashboard{% endblock %}
+
+{% block admin_conteudo %}
+
+<!-- ---------- Cartões de indicadores ---------- -->
+<section class="grade-indicadores">
+    <div class="cartao indicador">
+        <span class="indicador-valor">{{ stats.total_alunos }}</span>
+        <span class="indicador-rotulo">Total de alunos</span>
+    </div>
+    <div class="cartao indicador">
+        <span class="indicador-valor">{{ stats.total_salas }}</span>
+        <span class="indicador-rotulo">Total de salas ativas</span>
+    </div>
+    <div class="cartao indicador indicador-alerta">
+        <span class="indicador-valor">{{ stats.alunos_aguardando }}</span>
+        <span class="indicador-rotulo">Alunos aguardando</span>
+    </div>
+    <div class="cartao indicador indicador-sucesso">
+        <span class="indicador-valor">{{ stats.alunos_chamados }}</span>
+        <span class="indicador-rotulo">Alunos chamados</span>
+    </div>
+    <div class="cartao indicador">
+        <span class="indicador-valor">
+            {{ stats.tempo_medio_minutos if stats.tempo_medio_minutos is not none else '—' }}
+            {% if stats.tempo_medio_minutos is not none %}<small>min</small>{% endif %}
+        </span>
+        <span class="indicador-rotulo">Tempo médio de espera (hoje)</span>
+    </div>
+    <div class="cartao indicador">
+        <span class="indicador-valor">{{ stats.chamadas_hoje }}</span>
+        <span class="indicador-rotulo">Chamadas hoje</span>
+    </div>
+</section>
+
+<!-- ---------- Último chamado ---------- -->
+<section class="cartao secao-ultimo-chamado">
+    <h2>Último chamado</h2>
+    {% if stats.ultimo_chamado %}
+    <p>
+        <strong>{{ stats.ultimo_chamado.aluno_nome }}</strong>
+        — {{ stats.ultimo_chamado.sala_nome or 'Sem sala' }}
+        <span class="texto-suave">({{ stats.ultimo_chamado.horario }})</span>
+    </p>
+    {% else %}
+    <p class="texto-suave">Nenhuma chamada registrada ainda.</p>
+    {% endif %}
+</section>
+
+<!-- ---------- Alunos aguardando por sala (gráfico simples em CSS) ---------- -->
+<section class="cartao secao-grafico">
+    <h2>Alunos aguardando por sala</h2>
+    {% if stats.alunos_por_sala %}
+    <div class="grafico-barras">
+        {% set maximo = (stats.alunos_por_sala | map(attribute='total') | max) or 1 %}
+        {% for item in stats.alunos_por_sala %}
+        <div class="barra-linha">
+            <span class="barra-rotulo">{{ item.sala }}</span>
+            <div class="barra-fundo">
+                <div class="barra-preenchida"
+                     style="width: {{ (item.total / maximo * 100) if maximo else 0 }}%; background: {{ item.cor }};"></div>
+            </div>
+            <span class="barra-valor">{{ item.total }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="texto-suave">Cadastre salas para visualizar o gráfico.</p>
+    {% endif %}
+</section>
+
+{% endblock %}

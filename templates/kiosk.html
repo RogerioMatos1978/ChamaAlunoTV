@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block titulo %}Kiosk — {{ nome_instituicao }}{% endblock %}
+
+{% block conteudo %}
+<div class="tela-kiosk">
+    <header class="kiosk-topo">
+        <div class="kiosk-marca">
+            <img src="{{ url_for('static', filename='img/logos/logo.png') }}"
+                 alt="{{ nome_instituicao }}" onerror="this.style.display='none'">
+            <span>{{ nome_instituicao }}</span>
+        </div>
+
+        <div class="kiosk-usuario">
+            {% if modo == 'fila' %}
+            <a href="{{ url_for('kiosk.selecionar_sala') }}" class="btn btn-secundario">↩ Trocar de sala</a>
+            <label class="campo-guiche">
+                Guichê:
+                <input type="text" id="campo-guiche" maxlength="10" placeholder="ex.: 1">
+            </label>
+            {% endif %}
+            {% if perfil_logado in ('administrador', 'supervisor') %}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secundario">Painel administrativo</a>
+            {% endif %}
+            <a href="{{ url_for('presenca.lista') }}" target="_blank" rel="noopener" class="btn btn-secundario">📋 Presença</a>
+            <a href="{{ url_for('screen.tela') }}" target="_blank" rel="noopener" class="btn btn-secundario">📺 Painel de TV</a>
+            <button id="btn-tema" class="botao-tema" title="Alternar tema claro/escuro">🌓</button>
+            <span>{{ usuario_logado }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-pequeno">Sair</a>
+        </div>
+    </header>
+
+    <main class="kiosk-conteudo">
+        {% if modo == 'selecionar' %}
+            <h1 class="kiosk-titulo">Selecione a sala</h1>
+
+            {% if salas %}
+            <div class="grade-salas">
+                {% for sala in salas %}
+                <a href="{{ url_for('kiosk.fila_sala', sala_id=sala.id) }}"
+                   class="cartao-sala" style="border-top-color: {{ sala.cor }};">
+                    <span class="cartao-sala-nome">{{ sala.nome }}</span>
+                    {% if sala.descricao %}<span class="cartao-sala-desc">{{ sala.descricao }}</span>{% endif %}
+                    <span class="cartao-sala-contagem">{{ sala.alunos_aguardando }} aguardando</span>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="cartao estado-vazio">
+                <p>Nenhuma sala ativa cadastrada.</p>
+                {% if perfil_logado in ('administrador', 'supervisor') %}
+                <a href="{{ url_for('admin.salas_nova') }}" class="btn btn-primario">Cadastrar sala</a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        {% else %}
+            <h1 class="kiosk-titulo" style="border-bottom: 5px solid {{ sala.cor }};">{{ sala.nome }}</h1>
+
+            <div class="grade-alunos" id="grade-alunos">
+                {% for aluno in alunos %}
+                <div class="cartao-aluno" data-aluno-id="{{ aluno.id }}">
+                    {% if aluno.prioridade %}<span class="etiqueta-prioridade">Prioridade</span>{% endif %}
+                    <img class="foto-aluno" src="{{ foto_url(aluno.foto) }}" alt="{{ aluno.nome }}">
+                    <span class="nome-aluno">{{ aluno.nome }}</span>
+                    <span class="turma-aluno">{{ aluno.turma or '' }}</span>
+                    <button class="btn-chamar" data-aluno-id="{{ aluno.id }}">CHAMAR</button>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="cartao estado-vazio" id="estado-vazio-fila" {{ 'style=display:none;' if alunos else '' }}>
+                <p>Nenhum aluno aguardando nesta sala no momento.</p>
+            </div>
+
+            <!-- Últimos chamados desta sala (Módulo 11): sempre mostra o
+                 nome e a foto corretos do aluno, com botão para repetir
+                 a chamada (ex.: quando o aluno não aparece). -->
+            <section class="secao-recentes">
+                <h2>Últimos chamados desta sala</h2>
+                <div class="lista-recentes" id="lista-recentes">
+                    {% for chamada in recentes %}
+                    <div class="cartao-recente" data-aluno-id="{{ chamada.aluno_id }}">
+                        <img class="foto-recente"
+                             src="{{ foto_url(chamada.foto) }}" alt="{{ chamada.aluno_nome }}">
+                        <div class="info-recente">
+                            <span class="nome-recente">{{ chamada.aluno_nome }}</span>
+                            <span class="turma-recente">{{ chamada.turma or '' }}</span>
+                        </div>
+                        <button type="button" class="btn btn-pequeno btn-repetir"
+                                data-aluno-id="{{ chamada.aluno_id }}">🔁 Repetir</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <p class="texto-suave" id="sem-recentes" {{ '' if not recentes else 'style=display:none;' }}>
+                    Nenhuma chamada registrada nesta sala ainda.
+                </p>
+            </section>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    window.CONFIG_KIOSK = {
+        fotosBase: "{{ url_for('static', filename='fotos/') }}",
+        avatarPadrao: "{{ url_for('static', filename='img/icons/default_avatar.png') }}",
+        salaNome: {{ (sala.nome if sala else '') | tojson }}
+    };
+</script>
+<script src="{{ url_for('static', filename='js/kiosk.js') }}"></script>
+{% endblock %}

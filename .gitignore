@@ -1,0 +1,29 @@
+# Ambiente virtual
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.pyc
+
+# Banco de dados e dados sensíveis
+database/alunos.db
+database/*.db-journal
+backups/*.db
+logs/*.log
+
+# Uploads de usuários (mantém apenas o placeholder no repositório)
+static/uploads/*
+!static/uploads/.gitkeep
+static/fotos/*
+!static/fotos/.gitkeep
+
+# Variáveis de ambiente
+.env
+
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

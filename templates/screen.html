@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block titulo %}Painel de Chamadas — {{ nome_instituicao }}{% endblock %}
+
+{% block conteudo %}
+<div class="tela-screen" id="tela-screen">
+
+    <!-- ---------- Estado ocioso: nenhuma chamada em exibição ---------- -->
+    <div class="screen-ocioso" id="screen-ocioso">
+        <img src="{{ url_for('static', filename='img/logos/logo.png') }}"
+             alt="{{ nome_instituicao }}" class="screen-logo-ocioso" onerror="this.style.display='none'">
+        <h1 class="screen-instituicao">{{ nome_instituicao }}</h1>
+        <p class="screen-aguardando">Aguardando chamadas<span class="pontos-piscando">...</span></p>
+        <p class="screen-relogio" id="screen-relogio"></p>
+    </div>
+
+    <!-- ---------- Estado de chamada: foto + nome em destaque ---------- -->
+    <div class="screen-chamada" id="screen-chamada">
+        <img id="screen-foto" class="screen-foto" src="" alt="Foto do aluno">
+        <h1 id="screen-nome" class="screen-nome"></h1>
+        <p id="screen-turma" class="screen-turma"></p>
+        <p id="screen-sala" class="screen-sala"></p>
+    </div>
+
+    <!-- ---------- Botões flutuantes (tela cheia / configurações de voz) ---------- -->
+    <div class="screen-controles">
+        <button id="btn-config-voz" class="botao-controle" title="Configurar narração">⚙</button>
+        <button id="btn-tela-cheia" class="botao-controle" title="Tela cheia">⛶</button>
+    </div>
+
+    <!-- ---------- Painel de configuração de narração ---------- -->
+    <div class="painel-config-voz oculto" id="painel-config-voz">
+        <h2>Configurações de narração</h2>
+
+        <label for="config-voz">Voz</label>
+        <select id="config-voz"></select>
+
+        <label for="config-idioma">Idioma</label>
+        <input type="text" id="config-idioma" value="pt-BR">
+
+        <label for="config-velocidade">Velocidade: <span id="valor-velocidade">1.0</span></label>
+        <input type="range" id="config-velocidade" min="0.5" max="2" step="0.1" value="1">
+
+        <label for="config-pitch">Tom (pitch): <span id="valor-pitch">1.0</span></label>
+        <input type="range" id="config-pitch" min="0" max="2" step="0.1" value="1">
+
+        <label for="config-volume">Volume: <span id="valor-volume">1.0</span></label>
+        <input type="range" id="config-volume" min="0" max="1" step="0.05" value="1">
+
+        <label class="opcao-checkbox" style="margin-top: 0.85rem !important;">
+            <input type="checkbox" id="config-som-aviso" checked>
+            Tocar som antes da narração
+        </label>
+
+        <div class="painel-config-acoes">
+            <button id="btn-testar-voz" class="btn btn-secundario">Testar voz</button>
+            <button id="btn-salvar-voz" class="btn btn-primario">Salvar</button>
+            <button id="btn-fechar-voz" class="btn btn-pequeno">Fechar</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Caminhos usados pelo screen.js para montar a URL da foto do aluno
+    // (com fallback automático para a imagem padrão, via onerror da <img>).
+    window.CONFIG_SCREEN = {
+        fotosBase: "{{ url_for('static', filename='fotos/') }}",
+        avatarPadrao: "{{ url_for('static', filename='img/icons/default_avatar.png') }}",
+        nomeInstituicao: {{ nome_instituicao | tojson }},
+        repeticoesNarracao: {{ config.NARRACAO_REPETICOES | default(2) }}
+    };
+</script>
+<script src="{{ url_for('static', filename='js/screen.js') }}"></script>
+{% endblock %}

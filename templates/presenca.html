@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block titulo %}Presença — {{ nome_instituicao }}{% endblock %}
+
+{% block conteudo %}
+<div class="tela-presenca">
+    <header class="presenca-topo">
+        <div class="kiosk-marca">
+            <img src="{{ url_for('static', filename='img/logos/logo.png') }}"
+                 alt="{{ nome_instituicao }}" onerror="this.style.display='none'">
+            <span>{{ nome_instituicao }} — Painel de Presença</span>
+        </div>
+        <div class="kiosk-usuario">
+            {% if perfil_logado in ('administrador', 'supervisor') %}
+            <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secundario">Painel administrativo</a>
+            {% endif %}
+            <button id="btn-tema" class="botao-tema" title="Alternar tema claro/escuro">🌓</button>
+            <span>{{ usuario_logado }}</span>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-pequeno">Sair</a>
+        </div>
+    </header>
+
+    <main class="presenca-conteudo">
+        <div class="presenca-barra-busca">
+            <input type="text" id="busca-presenca" placeholder="Buscar por nome, turma ou código..."
+                   autocomplete="off">
+            <span class="presenca-contador" id="contador-presenca">
+                {{ alunos | length }} aguardando
+            </span>
+        </div>
+
+        <div class="presenca-filtros" id="filtros-sala">
+            <button type="button" class="pilula-filtro ativa" data-sala-id="todas">
+                Todas <span>({{ alunos | length }})</span>
+            </button>
+            {% for sala in salas %}
+            <button type="button" class="pilula-filtro" data-sala-id="{{ sala.id }}" style="--cor-pilula: {{ sala.cor }};">
+                {{ sala.nome }} <span>({{ sala.alunos_aguardando }})</span>
+            </button>
+            {% endfor %}
+        </div>
+
+        <div class="grade-presenca" id="grade-presenca">
+            {% for aluno in alunos %}
+            <div class="cartao-presenca" data-aluno-id="{{ aluno.id }}" data-sala-id="{{ aluno.sala_id or '' }}"
+                 data-busca="{{ (aluno.nome ~ ' ' ~ (aluno.turma or '') ~ ' ' ~ (aluno.codigo or '')) | lower }}">
+                {% if aluno.prioridade %}<span class="etiqueta-prioridade">Prioridade</span>{% endif %}
+                <img class="foto-aluno" src="{{ foto_url(aluno.foto) }}" alt="{{ aluno.nome }}">
+                <span class="nome-aluno">{{ aluno.nome }}</span>
+                <span class="turma-aluno">{{ aluno.turma or '' }}</span>
+                {% if aluno.sala_nome %}
+                <span class="selo-sala" style="background: {{ aluno.sala_cor }};">{{ aluno.sala_nome }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="cartao estado-vazio" id="estado-vazio-presenca" {{ 'style=display:none;' if alunos else '' }}>
+            <p>Nenhum aluno aguardando no momento.</p>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/presenca.js') }}"></script>
+{% endblock %}

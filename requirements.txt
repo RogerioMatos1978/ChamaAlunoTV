@@ -1,0 +1,37 @@
+##############################################################################
+# Sistema de Chamada Inteligente de Alunos - Dependências
+# Testado com Python 3.13+
+#
+# Pacotes puramente Python (sem partes em C) ficam com versão travada
+# ("==") para reprodutibilidade. Pacotes com extensões compiladas
+# (pandas, Pillow, eventlet, etc.) usam ">=" sem teto: assim o pip
+# sempre baixa a versão mais nova com um "wheel" pronto para a sua
+# versão do Python, em vez de tentar compilar do zero (o que exige
+# Visual Studio Build Tools no Windows e costuma falhar).
+
+##############################################################################
+
+# --- Núcleo web (Python puro) ---
+Flask==3.0.3
+Flask-SocketIO==5.3.6
+Flask-WTF==1.2.1          # Proteção CSRF e formulários
+Werkzeug==3.0.4            # Hash de senha (gerado junto com o Flask)
+
+# --- Tempo real (WebSocket) ---
+eventlet>=0.36.1
+python-socketio>=5.11.4
+python-engineio>=4.9.1
+
+# --- Imagens ---
+Pillow>=10.4.0              # Compressão/redimensionamento de fotos
+
+# --- Exportações ---
+pandas>=2.2.3                # Exportação Excel/CSV (2.2.2 não tem wheel para Python 3.13)
+openpyxl==3.1.5              # Motor .xlsx usado pelo pandas (Python puro)
+reportlab>=4.2.2             # Geração de relatórios em PDF
+
+# --- QR Code ---
+qrcode>=7.4.2
+
+# --- Utilitários ---
+python-dotenv==1.0.1        # Variáveis de ambiente (config.py)

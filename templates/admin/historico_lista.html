@@ -1,0 +1,92 @@
+{% extends "admin.html" %}
+
+{% block admin_titulo %}Histórico{% endblock %}
+{% block admin_cabecalho %}Histórico de chamadas{% endblock %}
+
+{% block admin_conteudo %}
+
+<div class="cartao formulario-filtros">
+    <form method="GET" class="linha-filtros-historico">
+        <input type="text" name="busca" placeholder="Buscar aluno, turma ou operador..." value="{{ filtros.busca or '' }}">
+
+        <select name="sala_nome">
+            <option value="">Todas as salas</option>
+            {% for sala_nome in salas_historico %}
+            <option value="{{ sala_nome }}" {{ 'selected' if filtros.sala_nome == sala_nome else '' }}>{{ sala_nome }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="tipo">
+            <option value="">Todos os tipos</option>
+            <option value="chamada" {{ 'selected' if filtros.tipo == 'chamada' else '' }}>Chamada</option>
+            <option value="rechamada" {{ 'selected' if filtros.tipo == 'rechamada' else '' }}>Rechamada</option>
+            <option value="manual" {{ 'selected' if filtros.tipo == 'manual' else '' }}>Manual</option>
+        </select>
+
+        <input type="date" name="data_inicio" value="{{ filtros.data_inicio or '' }}" title="De">
+        <input type="date" name="data_fim" value="{{ filtros.data_fim or '' }}" title="Até">
+
+        <button type="submit" class="btn btn-secundario">Filtrar</button>
+        <a href="{{ url_for('admin.historico_lista') }}" class="btn btn-pequeno">Limpar</a>
+    </form>
+
+    <div class="acoes-exportacao">
+        <a href="{{ url_for('admin.historico_exportar', formato='csv', **filtros) }}" class="btn btn-pequeno">⬇ CSV</a>
+        <a href="{{ url_for('admin.historico_exportar', formato='xlsx', **filtros) }}" class="btn btn-pequeno">⬇ Excel</a>
+        <a href="{{ url_for('admin.historico_exportar', formato='pdf', **filtros) }}" class="btn btn-pequeno">⬇ PDF</a>
+    </div>
+</div>
+
+{% if registros %}
+<div class="cartao tabela-responsiva">
+    <table class="tabela">
+        <thead>
+            <tr>
+                <th>Aluno</th>
+                <th>Turma</th>
+                <th>Sala</th>
+                <th>Horário</th>
+                <th>Operador</th>
+                <th>Tipo</th>
+                <th>IP</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for registro in registros %}
+            <tr>
+                <td>{{ registro.aluno_nome }}</td>
+                <td>{{ registro.turma or '—' }}</td>
+                <td>{{ registro.sala_nome or '—' }}</td>
+                <td>{{ registro.horario }}</td>
+                <td>{{ registro.operador_nome or '—' }}</td>
+                <td>
+                    {% if registro.tipo == 'rechamada' %}
+                        <span class="selo selo-alerta">Rechamada</span>
+                    {% elif registro.tipo == 'manual' %}
+                        <span class="selo selo-inativo">Manual</span>
+                    {% else %}
+                        <span class="selo selo-sucesso">Chamada</span>
+                    {% endif %}
+                </td>
+                <td>{{ registro.ip_operador or '—' }}</td>
+                <td>
+                    {% if registro.aluno_id %}
+                    <form method="POST" action="{{ url_for('admin.historico_rechamar', chamada_id=registro.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-pequeno">🔁 Rechamar</button>
+                    </form>
+                    {% else %}—{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="cartao estado-vazio">
+    <p>Nenhum registro encontrado para os filtros selecionados.</p>
+</div>
+{% endif %}
+
+{% endblock %}
