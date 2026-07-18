@@ -65,6 +65,7 @@ sistema_chamada_alunos/
 ├── requirements.txt
 ├── install.sh / install.bat
 ├── run.sh / run.bat
+├── run_rede.bat             # Windows: detecta e exibe o IP da rede antes de iniciar
 ├── database/
 │   ├── models.py             # schema SQL (TABLES_SQL, INDEXES_SQL, migração)
 │   ├── services.py            # TODA a lógica de negócio e acesso a dados

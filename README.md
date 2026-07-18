@@ -19,6 +19,7 @@ sistema_chamada_alunos/
 ├── requirements.txt
 ├── install.sh / install.bat    # Instalação (Linux/macOS / Windows)
 ├── run.sh / run.bat            # Execução em desenvolvimento
+├── run_rede.bat                # Execução detectando e exibindo o IP da rede (Windows)
 ├── database/
 │   ├── models.py               # Schema SQLite (CREATE TABLE) + migração
 │   ├── services.py             # Regras de negócio / acesso a dados
@@ -345,6 +346,16 @@ assim que possível.
 - Os arquivos ficam em `backups/alunos_AAAAMMDD_HHMMSS.db`.
 
 ## Uso em rede local
+
+**Atalho no Windows:** rode `run_rede.bat` em vez de `run.bat` — ele
+detecta automaticamente o IP desta máquina na rede e já mostra na tela
+os links prontos para o Kiosk, o painel de TV e o painel administrativo
+(não precisa rodar `ipconfig` manualmente). Se a máquina tiver mais de
+uma rede ativa (VPN, VirtualBox, hotspot), confira se o IP detectado é
+o da rede correta da instituição.
+
+Passo a passo manual (Windows, Linux/macOS, ou se preferir não usar o
+`run_rede.bat`):
 
 1. Descubra o IP da máquina que está rodando o servidor:
    - Windows: `ipconfig` (campo "Endereço IPv4")
