@@ -289,6 +289,32 @@ h1, h2, h3, h4 {
     color: var(--cor-texto-suave);
 }
 
+/* --- Página inicial pública (Módulo 15) --- */
+.cartao-home {
+    max-width: 440px;
+}
+
+.home-acessos-publicos {
+    margin-top: 1.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--cor-borda);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.home-acessos-titulo {
+    font-size: 0.78rem;
+    color: var(--cor-texto-suave);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.25rem;
+}
+
+.btn-home-publico {
+    width: 100%;
+}
+
 /* ---------- 8. Layout administrativo (Módulo 3) ---------- */
 .layout-admin {
     display: grid;
@@ -1094,6 +1120,13 @@ h1, h2, h3, h4 {
     font-size: 1.15rem;
     cursor: pointer;
     transition: var(--transicao-padrao);
+    /* .botao-controle também é usado em links <a> (ex.: botão de login
+       do Módulo 16), então precisa de display flex explícito — um <a>
+       normal ignora width/height. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
 }
 
 .botao-controle:hover {
@@ -1648,6 +1681,10 @@ h1, h2, h3, h4 {
 
 .link-screen-geral:hover {
     color: #fff;
+}
+
+.link-screen-entrar {
+    margin-top: 0.5rem;
 }
 
 /* --- Gestão de alunos/salas pelo usuário padrão (Kiosk) --- */

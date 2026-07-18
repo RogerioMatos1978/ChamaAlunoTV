@@ -15,6 +15,12 @@
             {% if modo == 'fila' %}
             <a href="{{ url_for('kiosk.selecionar_sala') }}" class="btn btn-secundario btn-trocar-sala">↩ Trocar sala</a>
             {% endif %}
+            {% if not perfil_logado %}
+            <!-- Módulo 16: o Kiosk é público, mas sempre precisa de um jeito
+                 de chegar ao resto do sistema (admin, gestão) — mesmo no
+                 modo simplificado, que esconde os demais atalhos. -->
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secundario btn-entrar-kiosk">🔐 Entrar</a>
+            {% endif %}
             {% if not kiosk_simplificado %}
                 {% if modo == 'fila' %}
                 <label class="campo-guiche">

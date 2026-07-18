@@ -18,7 +18,7 @@ Como rodar em produção:
 import eventlet
 eventlet.monkey_patch()  # Necessário ANTES de qualquer outro import que use rede/sockets.
 
-from flask import Flask, session, redirect, url_for
+from flask import Flask, session, redirect, url_for, render_template
 from flask_socketio import SocketIO
 from flask_wtf import CSRFProtect
 
@@ -71,6 +71,10 @@ def create_app():
             "versao_sistema": app.config["VERSAO_SISTEMA"],
             "cor_menu": get_configuracao("cor_menu") or app.config["COR_MENU"],
             "cor_footer": get_configuracao("cor_footer") or app.config["COR_FOOTER"],
+            # Módulo 15: para onde o aluno é chamado a se dirigir na
+            # narração/exibição da TV (independente da sala/TV que
+            # disparou a chamada) — ex.: "Favor dirigir-se à Portaria de Saída".
+            "destino_chamada": get_configuracao("destino_chamada") or "Portaria de Saída",
             "usuario_logado": session.get("usuario_nome"),
             "perfil_logado": session.get("perfil"),
             # Função auxiliar usada nos templates: foto_url(aluno.foto)
@@ -82,16 +86,20 @@ def create_app():
         }
 
     # --- Rota inicial ---
-    # Desde o Módulo 14, NÃO exige login: quem não estiver logado é
-    # enviado direto para o Kiosk (o terminal público da portaria), em
-    # vez de ser barrado por uma tela de login. Quem já estiver logado
-    # continua indo para sua área principal: administrador/supervisor ->
-    # Dashboard administrativo; operador -> Kiosk (seleção de sala).
+    # Módulo 15: quem NÃO está logado vê a página inicial (`home.html`),
+    # que convida a fazer login — mas com atalhos diretos para o Kiosk e
+    # o painel de TV, que continuam públicos (Módulo 14) e não passam
+    # por aqui na prática (cada TV/terminal abre direto em `/kiosk` ou
+    # `/screen`). Quem já está logado nunca vê a home: vai direto para
+    # sua área principal — administrador/supervisor -> Dashboard
+    # administrativo; operador -> Kiosk (seleção de sala).
     @app.route("/")
     def index():
-        if session.get("perfil") in ("administrador", "supervisor"):
-            return redirect(url_for("admin.dashboard"))
-        return redirect(url_for("kiosk.selecionar_sala"))
+        if "usuario_id" in session:
+            if session.get("perfil") in ("administrador", "supervisor"):
+                return redirect(url_for("admin.dashboard"))
+            return redirect(url_for("kiosk.selecionar_sala"))
+        return render_template("home.html")
 
     @app.route("/healthcheck")
     def healthcheck():

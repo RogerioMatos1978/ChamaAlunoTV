@@ -28,6 +28,9 @@
     {% endif %}
 
     <a href="{{ url_for('screen.tela_geral') }}" class="link-screen-geral">Ver chamadas de todas as salas nesta TV</a>
+    {% if not perfil_logado %}
+    <a href="{{ url_for('auth.login') }}" class="link-screen-geral link-screen-entrar">🔐 Fazer login e acessar o sistema</a>
+    {% endif %}
 </div>
 
 {% else %}
@@ -74,10 +77,13 @@
         </p>
     </aside>
 
-    <!-- ---------- Botões flutuantes (tela cheia / trocar sala / configurações de voz) ---------- -->
+    <!-- ---------- Botões flutuantes (tela cheia / trocar sala / login / configurações de voz) ---------- -->
     <div class="screen-controles">
         {% if sala %}
         <button id="btn-trocar-sala-tv" class="botao-controle" title="Trocar a sala desta TV">🏫</button>
+        {% endif %}
+        {% if not perfil_logado %}
+        <a href="{{ url_for('auth.login') }}" class="botao-controle" title="Fazer login e acessar o sistema">🔐</a>
         {% endif %}
         <button id="btn-config-voz" class="botao-controle" title="Configurar narração">⚙</button>
         <button id="btn-tela-cheia" class="botao-controle" title="Tela cheia">⛶</button>
@@ -127,6 +133,9 @@
         avatarPadrao: "{{ url_for('static', filename='img/icons/default_avatar.png') }}",
         nomeInstituicao: {{ nome_instituicao | tojson }},
         repeticoesNarracao: {{ config.NARRACAO_REPETICOES | default(2) }},
+        // Módulo 15: destino fixo falado/exibido na chamada (ex.: "Portaria
+        // de Saída"), independente da sala/TV que exibe a chamada.
+        destinoChamada: {{ destino_chamada | tojson }},
         // Módulo 13/14: quando definido, esta TV é dedicada a UMA sala — o
         // screen.js ignora qualquer chamada de outra sala (não exibe,
         // não narra, não entra na lista "Últimos chamados" desta TV).

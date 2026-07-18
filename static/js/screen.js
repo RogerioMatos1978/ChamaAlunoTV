@@ -115,7 +115,10 @@
     function exibirChamada(chamada) {
         elNome.textContent = chamada.aluno_nome || "";
         elTurma.textContent = chamada.turma || "";
-        elSala.textContent = chamada.sala_nome ? ("Sala: " + chamada.sala_nome) : "";
+        // Módulo 15: o texto exibido não é mais a sala/TV que disparou a
+        // chamada — é sempre o destino para onde o aluno deve ir (ex.:
+        // "Dirija-se à Portaria de Saída"), configurável em Configurações.
+        elSala.textContent = "Dirija-se à " + (CONFIG.destinoChamada || "Portaria de Saída");
 
         elFoto.src = chamada.foto ? (CONFIG.fotosBase + chamada.foto) : CONFIG.avatarPadrao;
         elFoto.onerror = function () {
@@ -142,13 +145,16 @@
     function montarMensagem(chamada) {
         const nome = chamada.aluno_nome || "";
         const turma = chamada.turma ? chamada.turma + ". " : "";
-        const sala = chamada.sala_nome || "recepção";
+        // Módulo 15: destino sempre fixo (configurável em Configurações),
+        // não mais a sala/TV que disparou a chamada — o aluno é chamado
+        // para a Portaria de Saída, e não para "voltar" à própria sala.
+        const destino = CONFIG.destinoChamada || "Portaria de Saída";
 
         return (
             "Atenção. Chamando o aluno " + nome + ". " + turma +
-            "Favor dirigir-se à " + sala + ". " +
+            "Favor dirigir-se à " + destino + ". " +
             "Repetindo. " + nome + ". " + turma +
-            "Favor dirigir-se à " + sala + "."
+            "Favor dirigir-se à " + destino + "."
         );
     }
 

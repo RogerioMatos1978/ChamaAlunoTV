@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{#
+    templates/home.html
+    ====================
+    Página inicial pública do sistema (Módulo 15). Quem acessa "/" sem
+    estar logado cai aqui — diferente do Kiosk e do painel de TV
+    (públicos de propósito, Módulo 14), as telas administrativas e de
+    gestão continuam exigindo login, então esta página convida a pessoa
+    a entrar, sem forçar redirecionamento automático.
+
+    Quem já está logado nunca vê esta página: `app.py` -> `index()`
+    redireciona direto para a área correspondente ao perfil.
+#}
+
+{% block titulo %}Início — {{ nome_instituicao }}{% endblock %}
+
+{% block conteudo %}
+<main class="tela-login">
+    <div class="cartao-login cartao-home">
+        <div class="logo-login">
+            <img src="{{ url_for('static', filename='img/logos/logo.png') }}"
+                 alt="{{ nome_instituicao }}"
+                 onerror="this.style.display='none'">
+        </div>
+
+        <h1>{{ nome_instituicao }}</h1>
+        <p class="subtitulo-login">Sistema de Chamada Inteligente de Alunos</p>
+
+        <a href="{{ url_for('auth.login') }}" class="btn btn-primario btn-login">Fazer login</a>
+
+        <div class="home-acessos-publicos">
+            <p class="home-acessos-titulo">Terminais públicos (não exigem login)</p>
+            <a href="{{ url_for('kiosk.selecionar_sala') }}" class="btn btn-secundario btn-home-publico">
+                📣 Abrir Kiosk da recepção
+            </a>
+            <a href="{{ url_for('screen.tela') }}" class="btn btn-secundario btn-home-publico">
+                📺 Abrir painel de TV
+            </a>
+        </div>
+
+        <p class="rodape-login">Versão {{ versao_sistema }}</p>
+    </div>
+</main>
+{% endblock %}

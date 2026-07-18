@@ -703,6 +703,7 @@ def configuracoes():
         set_configuracao("cor_footer", request.form.get("cor_footer") or "#6CC2BA")
         set_configuracao("narracao_idioma", request.form.get("narracao_idioma") or "pt-BR")
         set_configuracao("narracao_repeticoes", request.form.get("narracao_repeticoes") or "2")
+        set_configuracao("destino_chamada", (request.form.get("destino_chamada") or "").strip() or "Portaria de Saída")
         set_configuracao("kiosk_modo_simplificado", "1" if request.form.get("kiosk_modo_simplificado") == "on" else "0")
 
         arquivo_logo = request.files.get("logo")
@@ -724,6 +725,7 @@ def configuracoes():
         "cor_footer": get_configuracao("cor_footer", "#6CC2BA"),
         "narracao_idioma": get_configuracao("narracao_idioma", "pt-BR"),
         "narracao_repeticoes": get_configuracao("narracao_repeticoes", "2"),
+        "destino_chamada": get_configuracao("destino_chamada", "Portaria de Saída"),
         "kiosk_modo_simplificado": get_configuracao("kiosk_modo_simplificado", "1"),
     }
     return render_template("admin/configuracoes.html", valores=valores)
